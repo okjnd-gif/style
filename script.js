@@ -5,6 +5,17 @@ const fontStylesheetPromises = new Map();
 const exportFontCssPromises = new Map();
 let gifEncoderPromise = null;
 let animationsPaused = false;
+const PROFESSIONAL_DEFAULTS = Object.freeze({
+    name: 'Nama Anda',
+    subtitle: 'Jabatan',
+    nameFont: 'montserrat',
+    subtitleFont: 'montserrat',
+    template: 'corporate',
+    computerModel: 'laptop',
+    background: 'checker',
+    speed: '3.5',
+    zoom: 100
+});
 
 const TEXT_FONT_OPTIONS = [
     { value: 'arial', label: 'Arial', family: 'Arial, Helvetica, sans-serif' },
@@ -20,17 +31,52 @@ const TEXT_FONT_OPTIONS = [
     { value: 'courier', label: 'Courier New', family: "'Courier New', monospace" },
     { value: 'impact', label: 'Impact', family: 'Impact, Haettenschweiler, sans-serif' },
     { value: 'comic', label: 'Comic Sans MS', family: "'Comic Sans MS', cursive" },
+    { value: 'calibri', label: 'Calibri', family: 'Calibri, Arial, sans-serif' },
+    { value: 'cambria', label: 'Cambria', family: 'Cambria, Georgia, serif' },
+    { value: 'century-gothic', label: 'Century Gothic', family: "'Century Gothic', Futura, sans-serif" },
+    { value: 'franklin', label: 'Franklin Gothic', family: "'Franklin Gothic Medium', 'Arial Narrow', sans-serif" },
+    { value: 'lucida-sans', label: 'Lucida Sans', family: "'Lucida Sans Unicode', 'Lucida Grande', sans-serif" },
+    { value: 'lucida-console', label: 'Lucida Console', family: "'Lucida Console', Monaco, monospace" },
+    { value: 'consolas', label: 'Consolas', family: "Consolas, 'Courier New', monospace" },
+    { value: 'book-antiqua', label: 'Book Antiqua', family: "'Book Antiqua', Palatino, serif" },
+    { value: 'monaco', label: 'Monaco', family: 'Monaco, Consolas, monospace' },
+    { value: 'system-ui', label: 'System UI', family: 'system-ui, sans-serif' },
     { value: 'inter', label: 'Inter', family: "'Inter', sans-serif", googleFamily: 'Inter' },
     { value: 'montserrat', label: 'Montserrat', family: "'Montserrat', sans-serif", googleFamily: 'Montserrat' },
     { value: 'roboto', label: 'Roboto', family: "'Roboto', sans-serif", googleFamily: 'Roboto' },
     { value: 'open-sans', label: 'Open Sans', family: "'Open Sans', sans-serif", googleFamily: 'Open Sans' },
-    { value: 'lato', label: 'Lato', family: "'Lato', sans-serif", googleFamily: 'Lato' },
+    { value: 'lato', label: 'Lato', family: "'Lato', sans-serif", googleFamily: 'Lato', googleWeight: 900 },
     { value: 'poppins', label: 'Poppins', family: "'Poppins', sans-serif", googleFamily: 'Poppins' },
     { value: 'playfair', label: 'Playfair Display', family: "'Playfair Display', serif", googleFamily: 'Playfair Display' },
     { value: 'nunito', label: 'Nunito', family: "'Nunito', sans-serif", googleFamily: 'Nunito' },
     { value: 'raleway', label: 'Raleway', family: "'Raleway', sans-serif", googleFamily: 'Raleway' },
     { value: 'source-sans', label: 'Source Sans 3', family: "'Source Sans 3', sans-serif", googleFamily: 'Source Sans 3' },
-    { value: 'ubuntu', label: 'Ubuntu', family: "'Ubuntu', sans-serif", googleFamily: 'Ubuntu' }
+    { value: 'ubuntu', label: 'Ubuntu', family: "'Ubuntu', sans-serif", googleFamily: 'Ubuntu', googleWeight: 700 },
+    { value: 'dm-sans', label: 'DM Sans', family: "'DM Sans', sans-serif", googleFamily: 'DM Sans' },
+    { value: 'manrope', label: 'Manrope', family: "'Manrope', sans-serif", googleFamily: 'Manrope', googleItalic: false },
+    { value: 'rubik', label: 'Rubik', family: 'Rubik, sans-serif', googleFamily: 'Rubik' },
+    { value: 'nunito-sans', label: 'Nunito Sans', family: "'Nunito Sans', sans-serif", googleFamily: 'Nunito Sans' },
+    { value: 'work-sans', label: 'Work Sans', family: "'Work Sans', sans-serif", googleFamily: 'Work Sans' },
+    { value: 'fira-sans', label: 'Fira Sans', family: "'Fira Sans', sans-serif", googleFamily: 'Fira Sans' },
+    { value: 'quicksand', label: 'Quicksand', family: 'Quicksand, sans-serif', googleFamily: 'Quicksand', googleWeight: 700, googleItalic: false },
+    { value: 'mulish', label: 'Mulish', family: 'Mulish, sans-serif', googleFamily: 'Mulish' },
+    { value: 'karla', label: 'Karla', family: 'Karla, sans-serif', googleFamily: 'Karla', googleWeight: 700 },
+    { value: 'cabin', label: 'Cabin', family: 'Cabin, sans-serif', googleFamily: 'Cabin', googleWeight: 700 },
+    { value: 'assistant', label: 'Assistant', family: 'Assistant, sans-serif', googleFamily: 'Assistant', googleWeight: 700, googleItalic: false },
+    { value: 'josefin-sans', label: 'Josefin Sans', family: "'Josefin Sans', sans-serif", googleFamily: 'Josefin Sans', googleWeight: 700 },
+    { value: 'hind', label: 'Hind', family: 'Hind, sans-serif', googleFamily: 'Hind', googleWeight: 700, googleItalic: false },
+    { value: 'heebo', label: 'Heebo', family: 'Heebo, sans-serif', googleFamily: 'Heebo', googleItalic: false },
+    { value: 'source-serif', label: 'Source Serif 4', family: "'Source Serif 4', serif", googleFamily: 'Source Serif 4' },
+    { value: 'lora', label: 'Lora', family: 'Lora, serif', googleFamily: 'Lora', googleWeight: 700 },
+    { value: 'libre-baskerville', label: 'Libre Baskerville', family: "'Libre Baskerville', serif", googleFamily: 'Libre Baskerville', googleWeight: 700 },
+    { value: 'roboto-slab', label: 'Roboto Slab', family: "'Roboto Slab', serif", googleFamily: 'Roboto Slab', googleItalic: false },
+    { value: 'cormorant', label: 'Cormorant Garamond', family: "'Cormorant Garamond', serif", googleFamily: 'Cormorant Garamond', googleWeight: 700 },
+    { value: 'eb-garamond', label: 'EB Garamond', family: "'EB Garamond', serif", googleFamily: 'EB Garamond' },
+    { value: 'archivo', label: 'Archivo', family: 'Archivo, sans-serif', googleFamily: 'Archivo' },
+    { value: 'exo-2', label: 'Exo 2', family: "'Exo 2', sans-serif", googleFamily: 'Exo 2' },
+    { value: 'barlow', label: 'Barlow', family: 'Barlow, sans-serif', googleFamily: 'Barlow' },
+    { value: 'asap', label: 'Asap', family: 'Asap, sans-serif', googleFamily: 'Asap' },
+    { value: 'merriweather', label: 'Merriweather', family: 'Merriweather, serif', googleFamily: 'Merriweather', googleWeight: 900 }
 ];
 const TEXT_FONT_OPTIONS_BY_VALUE = new Map(TEXT_FONT_OPTIONS.map(option => [option.value, option]));
 const TEMPLATE_LABELS = {
@@ -58,7 +104,22 @@ const TEMPLATE_LABELS = {
     onyx: 'Oniks Emas',
     glacier: 'Glacier Biru',
     monochrome: 'Monokrom',
-    indigo: 'Indigo Elektrik'
+    indigo: 'Indigo Elektrik',
+    roseGold: 'Rose Gold',
+    limeTech: 'Lime Teknologi',
+    orangeBlaze: 'Oranye Dinamis',
+    twilight: 'Senja Ungu',
+    skyline: 'Biru Skyline',
+    emeraldGold: 'Zamrud Emas',
+    cherry: 'Cherry Merah',
+    oceanMint: 'Ocean Mint',
+    royalPurple: 'Ungu Royal',
+    sandstone: 'Pasir Klasik',
+    neonGreen: 'Neon Hijau',
+    pearl: 'Mutiara Perak',
+    coral: 'Coral Modern',
+    galaxy: 'Galaksi',
+    iceBlue: 'Es Biru'
 };
 const ADDITIONAL_TEMPLATE_THEMES = {
     sunset: {
@@ -100,6 +161,66 @@ const ADDITIONAL_TEMPLATE_THEMES = {
     indigo: {
         base: 'midnight',
         colors: { mainFill: '#1e1b4b', mainOuter: '#818cf8', mainNeonOne: '#a5b4fc', mainNeonTwo: '#6366f1', subFill: '#eef2ff', subFrame: '#4f46e5', subText: '#1e1b4b', subNeon: '#818cf8', leftAccentOne: '#818cf8', leftAccentTwo: '#312e81', rightAccentOne: '#312e81', rightAccentTwo: '#6366f1' }
+    },
+    roseGold: {
+        base: 'graphiteGold',
+        colors: { mainFill: '#3b1f2b', mainOuter: '#f9a8d4', mainNeonOne: '#fbcfe8', mainNeonTwo: '#db2777', subFill: '#fff1f2', subFrame: '#be185d', subText: '#500724', subNeon: '#f9a8d4', leftAccentOne: '#f9a8d4', leftAccentTwo: '#500724', rightAccentOne: '#500724', rightAccentTwo: '#db2777' }
+    },
+    limeTech: {
+        base: 'midnight',
+        colors: { mainFill: '#17220a', mainOuter: '#a3e635', mainNeonOne: '#d9f99d', mainNeonTwo: '#84cc16', subFill: '#f7fee7', subFrame: '#4d7c0f', subText: '#1a2e05', subNeon: '#a3e635', leftAccentOne: '#a3e635', leftAccentTwo: '#1a2e05', rightAccentOne: '#1a2e05', rightAccentTwo: '#84cc16' }
+    },
+    orangeBlaze: {
+        base: 'crimson',
+        colors: { mainFill: '#431407', mainOuter: '#fdba74', mainNeonOne: '#fed7aa', mainNeonTwo: '#f97316', subFill: '#fff7ed', subFrame: '#c2410c', subText: '#7c2d12', subNeon: '#fdba74', leftAccentOne: '#fdba74', leftAccentTwo: '#7c2d12', rightAccentOne: '#7c2d12', rightAccentTwo: '#ea580c' }
+    },
+    twilight: {
+        base: 'violet',
+        colors: { mainFill: '#240b3b', mainOuter: '#e879f9', mainNeonOne: '#f5d0fe', mainNeonTwo: '#c026d3', subFill: '#fdf4ff', subFrame: '#a21caf', subText: '#4a044e', subNeon: '#e879f9', leftAccentOne: '#e879f9', leftAccentTwo: '#4a044e', rightAccentOne: '#4a044e', rightAccentTwo: '#c026d3' }
+    },
+    skyline: {
+        base: 'arctic',
+        colors: { mainFill: '#082f49', mainOuter: '#7dd3fc', mainNeonOne: '#bae6fd', mainNeonTwo: '#0284c7', subFill: '#f0f9ff', subFrame: '#0369a1', subText: '#0c4a6e', subNeon: '#7dd3fc', leftAccentOne: '#7dd3fc', leftAccentTwo: '#0c4a6e', rightAccentOne: '#0c4a6e', rightAccentTwo: '#0284c7' }
+    },
+    emeraldGold: {
+        base: 'emerald',
+        colors: { mainFill: '#064e3b', mainOuter: '#facc15', mainNeonOne: '#fef08a', mainNeonTwo: '#34d399', subFill: '#fefce8', subFrame: '#a16207', subText: '#14532d', subNeon: '#facc15', leftAccentOne: '#facc15', leftAccentTwo: '#14532d', rightAccentOne: '#14532d', rightAccentTwo: '#d4a72c' }
+    },
+    cherry: {
+        base: 'burgundy',
+        colors: { mainFill: '#450a0a', mainOuter: '#fca5a5', mainNeonOne: '#fecaca', mainNeonTwo: '#dc2626', subFill: '#fef2f2', subFrame: '#b91c1c', subText: '#450a0a', subNeon: '#f87171', leftAccentOne: '#fca5a5', leftAccentTwo: '#450a0a', rightAccentOne: '#450a0a', rightAccentTwo: '#dc2626' }
+    },
+    oceanMint: {
+        base: 'teal',
+        colors: { mainFill: '#042f2e', mainOuter: '#99f6e4', mainNeonOne: '#ccfbf1', mainNeonTwo: '#2dd4bf', subFill: '#f0fdfa', subFrame: '#0f766e', subText: '#134e4a', subNeon: '#5eead4', leftAccentOne: '#99f6e4', leftAccentTwo: '#134e4a', rightAccentOne: '#134e4a', rightAccentTwo: '#14b8a6' }
+    },
+    royalPurple: {
+        base: 'violet',
+        colors: { mainFill: '#2e1065', mainOuter: '#c4b5fd', mainNeonOne: '#ede9fe', mainNeonTwo: '#7c3aed', subFill: '#f5f3ff', subFrame: '#6d28d9', subText: '#2e1065', subNeon: '#a78bfa', leftAccentOne: '#c4b5fd', leftAccentTwo: '#2e1065', rightAccentOne: '#2e1065', rightAccentTwo: '#7c3aed' }
+    },
+    sandstone: {
+        base: 'copper',
+        colors: { mainFill: '#44403c', mainOuter: '#d6a86a', mainNeonOne: '#f5deb3', mainNeonTwo: '#c08457', subFill: '#faf5ef', subFrame: '#a16207', subText: '#422006', subNeon: '#d6a86a', leftAccentOne: '#d6a86a', leftAccentTwo: '#44403c', rightAccentOne: '#44403c', rightAccentTwo: '#c08457' }
+    },
+    neonGreen: {
+        base: 'midnight',
+        colors: { mainFill: '#052e16', mainOuter: '#4ade80', mainNeonOne: '#86efac', mainNeonTwo: '#22c55e', subFill: '#dcfce7', subFrame: '#15803d', subText: '#14532d', subNeon: '#4ade80', leftAccentOne: '#4ade80', leftAccentTwo: '#14532d', rightAccentOne: '#14532d', rightAccentTwo: '#16a34a' }
+    },
+    pearl: {
+        base: 'silver',
+        colors: { mainFill: '#475569', mainOuter: '#f8fafc', mainNeonOne: '#ffffff', mainNeonTwo: '#cbd5e1', subFill: '#ffffff', subFrame: '#94a3b8', subText: '#334155', subNeon: '#e2e8f0', leftAccentOne: '#f8fafc', leftAccentTwo: '#64748b', rightAccentOne: '#64748b', rightAccentTwo: '#cbd5e1' }
+    },
+    coral: {
+        base: 'burgundy',
+        colors: { mainFill: '#7c2d12', mainOuter: '#fb7185', mainNeonOne: '#fecdd3', mainNeonTwo: '#f97316', subFill: '#fff7ed', subFrame: '#ea580c', subText: '#7c2d12', subNeon: '#fb7185', leftAccentOne: '#fb7185', leftAccentTwo: '#7c2d12', rightAccentOne: '#7c2d12', rightAccentTwo: '#f97316' }
+    },
+    galaxy: {
+        base: 'midnight',
+        colors: { mainFill: '#1e1b4b', mainOuter: '#c084fc', mainNeonOne: '#e9d5ff', mainNeonTwo: '#8b5cf6', subFill: '#f5f3ff', subFrame: '#7c3aed', subText: '#312e81', subNeon: '#c084fc', leftAccentOne: '#c084fc', leftAccentTwo: '#312e81', rightAccentOne: '#312e81', rightAccentTwo: '#8b5cf6' }
+    },
+    iceBlue: {
+        base: 'arctic',
+        colors: { mainFill: '#164e63', mainOuter: '#e0f2fe', mainNeonOne: '#ffffff', mainNeonTwo: '#7dd3fc', subFill: '#f8fafc', subFrame: '#38bdf8', subText: '#0c4a6e', subNeon: '#bae6fd', leftAccentOne: '#e0f2fe', leftAccentTwo: '#0c4a6e', rightAccentOne: '#0c4a6e', rightAccentTwo: '#38bdf8' }
     }
 };
 
@@ -115,8 +236,11 @@ async function loadGoogleFontStylesheet(option) {
     if (!fontStylesheetPromises.has(option.value)) {
         const promise = new Promise((resolve, reject) => {
             const link = document.createElement('link');
+            const fontStyle = option.googleItalic === false ? 'normal' : 'italic';
             const query = new URLSearchParams({
-                family: `${option.googleFamily}:ital,wght@1,800`,
+                family: fontStyle === 'italic'
+                    ? `${option.googleFamily}:ital,wght@1,${option.googleWeight || 800}`
+                    : `${option.googleFamily}:wght@${option.googleWeight || 800}`,
                 display: 'swap'
             });
             link.rel = 'stylesheet';
@@ -143,10 +267,11 @@ async function getExportFontFaceCss(option) {
             if (!stylesheetResponse.ok) throw new Error(`Font ${option.label} tidak dapat dimuat`);
             const stylesheetText = await stylesheetResponse.text();
             const familyPattern = new RegExp(`font-family:\\s*['"]${option.googleFamily.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`, 'i');
+            const fontStyle = option.googleItalic === false ? 'normal' : 'italic';
             const fontFaceRule = (stylesheetText.match(/@font-face\s*\{[^}]+\}/g) || []).find(rule =>
                 familyPattern.test(rule) &&
-                /font-style:\s*italic/.test(rule) &&
-                /font-weight:\s*800/.test(rule) &&
+                new RegExp(`font-style:\\s*${fontStyle}`).test(rule) &&
+                new RegExp(`font-weight:\\s*${option.googleWeight || 800}`).test(rule) &&
                 /unicode-range:\s*U\+0000-00FF/i.test(rule)
             );
             const fontUrl = fontFaceRule && /src:\s*url\(([^)]+)\)/.exec(fontFaceRule)?.[1];
@@ -159,7 +284,7 @@ async function getExportFontFaceCss(option) {
             for (let offset = 0; offset < bytes.length; offset += 0x8000) {
                 binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
             }
-            return `@font-face{font-family:'${option.googleFamily}';font-style:italic;font-weight:800;src:url(data:font/woff2;base64,${btoa(binary)}) format('woff2');}`;
+            return `@font-face{font-family:'${option.googleFamily}';font-style:${fontStyle};font-weight:800;src:url(data:font/woff2;base64,${btoa(binary)}) format('woff2');}`;
         })().catch(error => {
             exportFontCssPromises.delete(option.value);
             throw error;
@@ -186,7 +311,8 @@ async function setTextFont(target, fontKey) {
     try {
         if (option.googleFamily) {
             await loadGoogleFontStylesheet(option);
-            const loadedFonts = await document.fonts.load(`italic 800 24px "${option.googleFamily}"`);
+            const fontStyle = option.googleItalic === false ? 'normal' : 'italic';
+            const loadedFonts = await document.fonts.load(`${fontStyle} ${option.googleWeight || 800} 24px "${option.googleFamily}"`);
             if (!loadedFonts.length) throw new Error(`Font ${option.label} tidak tersedia`);
         }
         textElement.setAttribute('font-family', option.family);
@@ -196,6 +322,33 @@ async function setTextFont(target, fontKey) {
         select.value = textElement.dataset.fontOption || 'montserrat';
         showToast(`Font ${option.label} gagal dimuat. ${error.message}`);
     }
+}
+
+function populateFontSelectors() {
+    ['nameFont', 'subTitleFont'].forEach(id => {
+        const select = document.getElementById(id);
+        if (!select) return;
+        select.replaceChildren();
+
+        [
+            { label: 'Font sistem', options: TEXT_FONT_OPTIONS.filter(option => !option.googleFamily) },
+            { label: 'Google Fonts', options: TEXT_FONT_OPTIONS.filter(option => option.googleFamily) }
+        ].forEach(group => {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = group.label;
+            const defaultFont = id === 'nameFont' ? PROFESSIONAL_DEFAULTS.nameFont : PROFESSIONAL_DEFAULTS.subtitleFont;
+            group.options.forEach(font => {
+                const option = document.createElement('option');
+                option.value = font.value;
+                option.textContent = font.label;
+                option.selected = font.value === defaultFont;
+                optgroup.appendChild(option);
+            });
+            select.appendChild(optgroup);
+        });
+    });
+    const note = document.getElementById('fontOptionsNote');
+    if (note) note.textContent = `${TEXT_FONT_OPTIONS.length} pilihan font. Google Fonts memerlukan koneksi internet.`;
 }
 
 function loadGifEncoder() {
@@ -323,7 +476,7 @@ function updateName(value) {
     const nameText = document.getElementById('nameText');
     if (!nameText) return;
 
-    const cleanName = (value || '').trim() || 'nama anda';
+    const cleanName = (value || '').trim() || PROFESSIONAL_DEFAULTS.name;
     nameText.textContent = cleanName;
     updateBannerLayout();
 }
@@ -806,10 +959,12 @@ function showToast(message) {
 function setBg(mode) {
     const body = document.body;
     body.classList.remove('bg-checkerboard', 'bg-dark-studio', 'bg-greenscreen');
+    const activeButtonId = mode === 'dark' ? 'btn-dark' : mode === 'green' ? 'btn-green' : 'btn-checker';
 
     document.querySelectorAll('.bg-btn').forEach(btn => {
-        btn.classList.remove('bg-sky-600', 'text-white');
-        btn.classList.add('bg-slate-800');
+        btn.classList.remove('bg-sky-600', 'bg-slate-800', 'text-white', 'text-slate-300', 'text-emerald-400');
+        btn.classList.add('bg-slate-800', btn.id === 'btn-green' ? 'text-emerald-400' : 'text-slate-300');
+        btn.setAttribute('aria-pressed', String(btn.id === activeButtonId));
     });
 
     if (mode === 'dark') {
@@ -835,6 +990,56 @@ function updateSpeed(val) {
     document.documentElement.style.setProperty('--speed', `${num}s`);
     const label = document.getElementById('speedLabel');
     if (label) label.textContent = `${num.toFixed(1).replace('.', ',')} dtk`;
+}
+
+function applyProfessionalDefaults(showNotification) {
+    const exportButtons = ['recordBtn', 'recordGifBtn', 'exportPngBtn']
+        .map(id => document.getElementById(id));
+    if (exportButtons.some(button => button && button.disabled)) {
+        showToast('Tunggu hingga proses ekspor selesai sebelum memulihkan setelan.');
+        return;
+    }
+
+    const nameInput = document.getElementById('nameInput');
+    const subtitleInput = document.getElementById('subTitleInput');
+    const nameFont = document.getElementById('nameFont');
+    const subtitleFont = document.getElementById('subTitleFont');
+    const nameText = document.getElementById('nameText');
+    const subtitleText = document.getElementById('subTitleText');
+    const nameFontOption = TEXT_FONT_OPTIONS_BY_VALUE.get(PROFESSIONAL_DEFAULTS.nameFont);
+    const subtitleFontOption = TEXT_FONT_OPTIONS_BY_VALUE.get(PROFESSIONAL_DEFAULTS.subtitleFont);
+
+    nameInput.value = PROFESSIONAL_DEFAULTS.name;
+    subtitleInput.value = PROFESSIONAL_DEFAULTS.subtitle;
+    nameFont.value = PROFESSIONAL_DEFAULTS.nameFont;
+    subtitleFont.value = PROFESSIONAL_DEFAULTS.subtitleFont;
+    nameText.setAttribute('font-family', nameFontOption.family);
+    nameText.dataset.fontOption = PROFESSIONAL_DEFAULTS.nameFont;
+    subtitleText.setAttribute('font-family', subtitleFontOption.family);
+    subtitleText.dataset.fontOption = PROFESSIONAL_DEFAULTS.subtitleFont;
+    updateName(PROFESSIONAL_DEFAULTS.name);
+    updateSubTitle(PROFESSIONAL_DEFAULTS.subtitle);
+
+    document.getElementById('computerModel').value = PROFESSIONAL_DEFAULTS.computerModel;
+    setComputerModel(PROFESSIONAL_DEFAULTS.computerModel);
+    setNameTemplate(PROFESSIONAL_DEFAULTS.template);
+    setBg(PROFESSIONAL_DEFAULTS.background);
+
+    const speedRange = document.getElementById('speedRange');
+    speedRange.value = PROFESSIONAL_DEFAULTS.speed;
+    updateSpeed(PROFESSIONAL_DEFAULTS.speed);
+    setZoom(PROFESSIONAL_DEFAULTS.zoom);
+    if (animationsPaused) toggleAnimationPlayback();
+
+    document.querySelectorAll('.editor-accordion').forEach(accordion => {
+        accordion.open = false;
+    });
+    const gallery = document.getElementById('templateGallery');
+    if (gallery) gallery.scrollTop = 0;
+    const sidebar = document.getElementById('controlBar');
+    if (sidebar) sidebar.scrollTop = 0;
+
+    if (showNotification !== false) showToast('Semua fitur dikembalikan ke preset profesional.');
 }
 
 function toggleControls(e) {
@@ -1427,10 +1632,8 @@ async function exportPng() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    updateName(document.getElementById('nameInput')?.value || 'name');
-    updateSubTitle(document.getElementById('subTitleInput')?.value || 'Jabatan');
-    setNameTemplate(document.getElementById('nameTemplate')?.value || 'ocean');
-    setComputerModel(document.getElementById('computerModel')?.value || 'laptop');
+    populateFontSelectors();
+    applyProfessionalDefaults(false);
     if (document.fonts?.ready) {
         document.fonts.ready.then(() => updateBannerLayout());
     }

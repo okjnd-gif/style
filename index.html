@@ -130,7 +130,7 @@
                     </g>
 
                     <g id="textGlowGroup" class="text-glow-pulse">
-                        <text id="nameText" x="692" y="254" text-anchor="middle" xml:space="preserve" fill="#ffffff" font-family="'Montserrat', sans-serif" font-weight="800" font-style="italic" font-size="90" letter-spacing="-1.5">name</text>
+                        <text id="nameText" x="692" y="254" text-anchor="middle" xml:space="preserve" fill="#ffffff" font-family="'Montserrat', sans-serif" font-weight="800" font-style="italic" font-size="90" letter-spacing="-1.5">Nama Anda</text>
                     </g>
 
                     <g clip-path="url(#mainInnerClip)" style="mix-blend-mode: overlay;">
@@ -203,7 +203,7 @@
 
                     <line id="subDivider" x1="527" y1="281" x2="517" y2="326" stroke="#00235b" stroke-width="2.4" stroke-linecap="round" />
 
-                    <text id="subTitleText" x="712" y="317" text-anchor="middle" fill="#00235b" font-family="'Montserrat', sans-serif" font-weight="800" font-style="italic" font-size="37" letter-spacing="0.2">jabatan</text>
+                    <text id="subTitleText" x="712" y="317" text-anchor="middle" fill="#00235b" font-family="'Montserrat', sans-serif" font-weight="800" font-style="italic" font-size="37" letter-spacing="0.2">Jabatan</text>
 
                     <g>
                         <polygon id="subAccentOne" points="948,280 982,280 946,326 912,326" fill="#0245a3" />
@@ -242,14 +242,17 @@
     <!-- Panel Kontrol -->
     <aside id="controlBar" aria-label="Panel editor lower third" class="control-sidebar bg-slate-900/95 backdrop-blur-md border-r border-slate-700 text-xs text-slate-200 shadow-2xl transition-all duration-300">
         <header class="editor-header">
-            <span class="editor-kicker">STUDIO GRAFIS</span>
+            <div class="editor-header-topline">
+                <span class="editor-kicker">NDOWE STUDIO</span>
+                <span class="editor-default-badge">Preset profesional</span>
+            </div>
             <h1 class="text-base font-bold text-white">Editor Lower Third</h1>
             <p>Sesuaikan identitas visual, gaya desain, dan pengaturan ekspor.</p>
         </header>
         <section class="editor-fields" aria-label="Identitas dan tampilan">
             <label class="editor-field" for="nameInput">
                 <span>Nama</span>
-                <input id="nameInput" type="text" value="name" maxlength="42" oninput="updateName(this.value)">
+                <input id="nameInput" type="text" value="Nama Anda" maxlength="42" oninput="updateName(this.value)">
             </label>
             <label class="editor-field" for="subTitleInput">
                 <span>Jabatan</span>
@@ -257,69 +260,11 @@
             </label>
             <label class="editor-field" for="nameFont">
                 <span>Font nama</span>
-                <select id="nameFont" onchange="setTextFont('name', this.value)">
-                    <optgroup label="Font sistem">
-                        <option value="arial">Arial</option>
-                        <option value="helvetica">Helvetica</option>
-                        <option value="verdana">Verdana</option>
-                        <option value="tahoma">Tahoma</option>
-                        <option value="trebuchet">Trebuchet MS</option>
-                        <option value="segoe">Segoe UI</option>
-                        <option value="times">Times New Roman</option>
-                        <option value="georgia">Georgia</option>
-                        <option value="palatino">Palatino Linotype</option>
-                        <option value="garamond">Garamond</option>
-                        <option value="courier">Courier New</option>
-                        <option value="impact">Impact</option>
-                        <option value="comic">Comic Sans MS</option>
-                    </optgroup>
-                    <optgroup label="Google Fonts">
-                        <option value="inter">Inter</option>
-                        <option value="montserrat" selected>Montserrat</option>
-                        <option value="roboto">Roboto</option>
-                        <option value="open-sans">Open Sans</option>
-                        <option value="lato">Lato</option>
-                        <option value="poppins">Poppins</option>
-                        <option value="playfair">Playfair Display</option>
-                        <option value="nunito">Nunito</option>
-                        <option value="raleway">Raleway</option>
-                        <option value="source-sans">Source Sans 3</option>
-                        <option value="ubuntu">Ubuntu</option>
-                    </optgroup>
-                </select>
+                <select id="nameFont" onchange="setTextFont('name', this.value)"></select>
             </label>
             <label class="editor-field" for="subTitleFont">
                 <span>Font jabatan</span>
-                <select id="subTitleFont" onchange="setTextFont('subTitle', this.value)">
-                    <optgroup label="Font sistem">
-                        <option value="arial">Arial</option>
-                        <option value="helvetica">Helvetica</option>
-                        <option value="verdana">Verdana</option>
-                        <option value="tahoma">Tahoma</option>
-                        <option value="trebuchet">Trebuchet MS</option>
-                        <option value="segoe">Segoe UI</option>
-                        <option value="times">Times New Roman</option>
-                        <option value="georgia">Georgia</option>
-                        <option value="palatino">Palatino Linotype</option>
-                        <option value="garamond">Garamond</option>
-                        <option value="courier">Courier New</option>
-                        <option value="impact">Impact</option>
-                        <option value="comic">Comic Sans MS</option>
-                    </optgroup>
-                    <optgroup label="Google Fonts">
-                        <option value="inter">Inter</option>
-                        <option value="montserrat" selected>Montserrat</option>
-                        <option value="roboto">Roboto</option>
-                        <option value="open-sans">Open Sans</option>
-                        <option value="lato">Lato</option>
-                        <option value="poppins">Poppins</option>
-                        <option value="playfair">Playfair Display</option>
-                        <option value="nunito">Nunito</option>
-                        <option value="raleway">Raleway</option>
-                        <option value="source-sans">Source Sans 3</option>
-                        <option value="ubuntu">Ubuntu</option>
-                    </optgroup>
-                </select>
+                <select id="subTitleFont" onchange="setTextFont('subTitle', this.value)"></select>
             </label>
             <label class="editor-field editor-field--wide" for="computerModel">
                 <span>Perangkat</span>
@@ -331,6 +276,7 @@
                 <option value="server">Server</option>
                 </select>
             </label>
+            <p id="fontOptionsNote" class="editor-field-note"></p>
         </section>
         <section class="editor-template-picker" aria-label="Template visual">
             <div class="editor-template-heading">
@@ -394,9 +340,9 @@
         </details>
         <div class="editor-control-row editor-control-row--background">
             <span class="editor-control-label">Latar pratinjau</span>
-            <button type="button" onclick="setBg('checker')" id="btn-checker" class="bg-btn px-2.5 py-1.5 rounded-lg font-medium bg-sky-600 text-white transition">Transparan</button>
-            <button type="button" onclick="setBg('dark')" id="btn-dark" class="bg-btn px-2.5 py-1.5 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Gelap</button>
-            <button type="button" onclick="setBg('green')" id="btn-green" class="bg-btn px-2.5 py-1.5 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-emerald-400 transition">Layar Hijau</button>
+            <button type="button" onclick="setBg('checker')" id="btn-checker" aria-pressed="true" class="bg-btn px-2.5 py-1.5 rounded-lg font-medium bg-sky-600 text-white transition">Transparan</button>
+            <button type="button" onclick="setBg('dark')" id="btn-dark" aria-pressed="false" class="bg-btn px-2.5 py-1.5 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Gelap</button>
+            <button type="button" onclick="setBg('green')" id="btn-green" aria-pressed="false" class="bg-btn px-2.5 py-1.5 rounded-lg font-medium bg-slate-800 hover:bg-slate-700 text-emerald-400 transition">Layar Hijau</button>
         </div>
         <div class="editor-control-row editor-control-row--speed">
             <label class="editor-control-label" for="speedRange">Kecepatan animasi</label>
@@ -421,7 +367,8 @@
                 Ekspor PNG 2K
             </button>
         </div>
-        <div class="editor-action-group editor-action-group--secondary">
+        <div class="editor-action-group editor-action-group--secondary" aria-label="Setelan editor">
+            <button type="button" id="resetDefaultsBtn" onclick="applyProfessionalDefaults()" class="editor-action-button editor-action-button--reset">Pulihkan default profesional</button>
             <button type="button" id="pauseAnimationBtn" onclick="toggleAnimationPlayback()" aria-pressed="false" class="editor-action-button editor-action-button--pause">Jeda pratinjau</button>
             <button type="button" onclick="toggleControls(event)" class="editor-action-button editor-action-button--secondary">Sembunyikan panel</button>
         </div>
