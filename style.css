@@ -1,0 +1,571 @@
+:root {
+    --speed: 3.5s;
+    --name-glow-color: rgba(56, 189, 248, 0.65);
+    --name-shadow-color: rgba(0, 12, 36, 0.75);
+    --stage-shadow-color: rgba(0, 0, 0, 0.45);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: block;
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background 0.3s ease;
+}
+
+.bg-checkerboard {
+    background-color: #9ca3af;
+    background-image: 
+        linear-gradient(45deg, #6b7280 25%, transparent 25%), 
+        linear-gradient(-45deg, #6b7280 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #6b7280 75%), 
+        linear-gradient(-45deg, transparent 75%, #6b7280 75%);
+    background-size: 46px 46px;
+    background-position: 0 0, 0 23px, 23px -23px, -23px 0;
+}
+
+.bg-dark-studio {
+    background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+}
+
+.bg-greenscreen {
+    background-color: #00FF00;
+}
+
+.color-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-width: 0;
+    color: #cbd5e1;
+    font-size: 0.7rem;
+}
+
+.editor-header {
+    padding: 0.2rem 0.2rem 0.85rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.editor-kicker {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #67e8f9;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+.editor-header h1 {
+    margin: 0;
+    color: #f8fafc;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.editor-header p {
+    margin: 0.3rem 0 0;
+    color: #94a3b8;
+    font-size: 0.72rem;
+    line-height: 1.5;
+}
+
+.editor-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+}
+
+.editor-field--wide {
+    grid-column: 1 / -1;
+}
+
+.editor-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+    color: #cbd5e1;
+    font-size: 0.68rem;
+    font-weight: 600;
+}
+
+.editor-field input,
+.editor-field select {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: 2.45rem;
+    padding: 0 0.65rem;
+    border: 1px solid #334155;
+    border-radius: 0.55rem;
+    outline: none;
+    background: #0f172a;
+    color: #f1f5f9;
+    font: inherit;
+    font-size: 0.72rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.editor-field input:focus,
+.editor-field select:focus {
+    border-color: #22d3ee;
+    box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.16);
+}
+
+.editor-template-picker {
+    min-width: 0;
+}
+
+.editor-template-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.45rem;
+}
+
+.editor-template-heading h2 {
+    margin: 0;
+    color: #e2e8f0;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.editor-template-heading p {
+    margin: 0.2rem 0 0;
+    color: #94a3b8;
+    font-size: 0.65rem;
+}
+
+.template-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    max-height: 17rem;
+    padding: 0.15rem 0.25rem 0.15rem 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: #475569 transparent;
+    scrollbar-width: thin;
+}
+
+.template-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+    padding: 0.3rem;
+    border: 1px solid #334155;
+    border-radius: 0.65rem;
+    background: rgba(15, 23, 42, 0.72);
+    color: #cbd5e1;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.template-card:hover {
+    border-color: #64748b;
+    background: #1e293b;
+}
+
+.template-card:focus-visible {
+    outline: 2px solid #67e8f9;
+    outline-offset: 2px;
+}
+
+.template-card.is-selected {
+    border-color: #22d3ee;
+    background: rgba(8, 145, 178, 0.16);
+    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.25);
+}
+
+.template-card svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 0.4rem;
+}
+
+.template-card-label {
+    overflow: hidden;
+    color: #cbd5e1;
+    font-size: 0.64rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.template-card.is-selected .template-card-label {
+    color: #a5f3fc;
+}
+
+.editor-accordion {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 0.75rem;
+    border: 1px solid rgba(100, 116, 139, 0.35);
+    border-radius: 0.75rem;
+    background: rgba(15, 23, 42, 0.6);
+}
+
+.editor-accordion summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    color: #e2e8f0;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+
+.editor-accordion summary::-webkit-details-marker {
+    display: none;
+}
+
+.editor-accordion summary::after {
+    content: "+";
+    color: #67e8f9;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.editor-accordion[open] summary::after {
+    content: "−";
+}
+
+.editor-help {
+    margin: 0 0 0.65rem;
+    color: #94a3b8;
+    font-size: 0.66rem;
+    line-height: 1.45;
+}
+
+.editor-color-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem 0.55rem;
+    padding-bottom: 0.75rem;
+}
+
+.editor-control-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.editor-control-label {
+    color: #94a3b8;
+    font-size: 0.68rem;
+    font-weight: 600;
+}
+
+.editor-control-row--background {
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.editor-control-row--background .editor-control-label {
+    flex: 1 0 100%;
+}
+
+.editor-control-row--background .bg-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-right: 0.35rem;
+    padding-left: 0.35rem;
+    font-size: 0.67rem;
+}
+
+.editor-control-row--speed .editor-control-label,
+.editor-control-row--zoom .editor-control-label {
+    flex: 1 1 auto;
+}
+
+.editor-control-row--speed input[type="range"] {
+    flex: 0 1 6rem;
+    min-width: 4.5rem;
+}
+
+.editor-value {
+    min-width: 2.7rem;
+    color: #67e8f9;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.68rem;
+    text-align: right;
+}
+
+.editor-control-row--zoom button {
+    flex: 0 0 auto;
+}
+
+.editor-action-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.editor-action-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    width: 100%;
+    min-width: 0;
+    min-height: 2.5rem;
+    padding: 0.45rem 0.5rem;
+    border: 1px solid transparent;
+    border-radius: 0.6rem;
+    color: #fff;
+    font: inherit;
+    font-size: 0.69rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    cursor: pointer;
+    transition: filter 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.editor-action-button:hover:not(:disabled) {
+    filter: brightness(1.12);
+}
+
+.editor-action-button:focus-visible {
+    outline: 2px solid #67e8f9;
+    outline-offset: 2px;
+}
+
+.editor-action-button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+
+.editor-action-button--video {
+    background: #e11d48;
+}
+
+.editor-action-button--gif {
+    background: #7c3aed;
+}
+
+.editor-action-button--png {
+    grid-column: 1 / -1;
+    background: #0891b2;
+}
+
+.editor-action-group--secondary .editor-action-button--pause {
+    border-color: rgba(251, 191, 36, 0.35);
+    background: #334155;
+    color: #fde68a;
+}
+
+.editor-action-group--secondary .editor-action-button--secondary {
+    border-color: #334155;
+    background: #1e293b;
+    color: #cbd5e1;
+}
+
+.preview-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: calc(100% - 360px);
+    max-width: none;
+    min-height: 100vh;
+    margin-left: 360px;
+    padding: 1.5rem;
+    transition: width 0.3s ease, margin-left 0.3s ease;
+}
+
+body.editor-hidden .preview-main {
+    width: 100%;
+    margin: 0 auto;
+    justify-content: center;
+}
+
+.control-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    box-sizing: border-box;
+    width: 360px;
+    padding: 1rem 0.75rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-radius: 0 1rem 1rem 0;
+}
+
+.control-sidebar > * {
+    width: 100%;
+    flex: 0 0 auto;
+}
+
+.control-sidebar.panel-hidden {
+    transform: translateX(-105%);
+    pointer-events: none;
+    opacity: 0;
+}
+
+.color-control input[type="color"] {
+    width: 2rem;
+    height: 1.75rem;
+    padding: 2px;
+    border: 1px solid #475569;
+    border-radius: 0.375rem;
+    background: #1e293b;
+    cursor: pointer;
+}
+
+.graphic-stage {
+    transform: scale(1);
+    transform-origin: center center;
+    transition: transform 0.2s ease;
+    filter: drop-shadow(0 18px 28px var(--stage-shadow-color));
+}
+
+@media (max-width: 900px) {
+    .preview-main {
+        width: calc(100% - 310px);
+        margin-left: 310px;
+        padding: 1rem;
+    }
+
+    .control-sidebar {
+        width: 310px;
+    }
+}
+
+@media (max-width: 680px) {
+    .preview-main {
+        width: 100%;
+        margin-left: 0;
+        padding: 0.75rem;
+    }
+
+    .control-sidebar {
+        width: min(360px, 90vw);
+        max-height: 88vh;
+        bottom: auto;
+        border-radius: 0 0 1rem 0;
+    }
+}
+
+/* Lampu Neon Melingkar Utama */
+.running-light-main {
+    stroke-dasharray: 420 1980;
+    stroke-dashoffset: 2400;
+    animation: runMainBorder var(--speed) linear infinite;
+}
+
+.running-light-main-secondary {
+    stroke-dasharray: 320 2080;
+    stroke-dashoffset: 1200;
+    animation: runMainBorderSec var(--speed) linear infinite;
+}
+
+.running-light-main-core {
+    stroke-dasharray: 160 2240;
+    stroke-dashoffset: 2400;
+    animation: runMainBorder var(--speed) linear infinite;
+}
+
+.running-light-main-sec-core {
+    stroke-dasharray: 120 2280;
+    stroke-dashoffset: 1200;
+    animation: runMainBorderSec var(--speed) linear infinite;
+}
+
+@keyframes runMainBorder {
+    0% { stroke-dashoffset: 2400; }
+    100% { stroke-dashoffset: 0; }
+}
+
+@keyframes runMainBorderSec {
+    0% { stroke-dashoffset: 1200; }
+    100% { stroke-dashoffset: -1200; }
+}
+
+/* Lampu Neon Melingkar Kotak Bawah */
+.running-light-sub {
+    stroke-dasharray: 280 1220;
+    stroke-dashoffset: 1500;
+    animation: runSubBorder var(--speed) linear infinite;
+}
+
+.running-light-sub-core {
+    stroke-dasharray: 110 1390;
+    stroke-dashoffset: 1500;
+    animation: runSubBorder var(--speed) linear infinite;
+}
+
+@keyframes runSubBorder {
+    0% { stroke-dashoffset: 1500; }
+    100% { stroke-dashoffset: 0; }
+}
+
+/* Efek Sapuan Kilau Cahaya */
+.shimmer-sweep {
+    animation: sweepAcross var(--speed) ease-in-out infinite;
+}
+
+@keyframes sweepAcross {
+    0% { transform: translateX(-250px); opacity: 0; }
+    15% { opacity: 0.65; }
+    55% { transform: translateX(1350px); opacity: 0.65; }
+    70%, 100% { transform: translateX(1350px); opacity: 0; }
+}
+
+.sub-shimmer-sweep {
+    animation: sweepSubAcross var(--speed) ease-in-out infinite;
+    animation-delay: calc(var(--speed) * 0.1);
+}
+
+@keyframes sweepSubAcross {
+    0% { transform: translateX(-150px); opacity: 0; }
+    20% { opacity: 0.7; }
+    60% { transform: translateX(1150px); opacity: 0.7; }
+    75%, 100% { transform: translateX(1150px); opacity: 0; }
+}
+
+/* Denyut Cahaya Teks */
+.text-glow-pulse {
+    animation: textGlowPulse var(--speed) ease-in-out infinite alternate;
+}
+
+@keyframes textGlowPulse {
+    0% {
+        filter: drop-shadow(0 3px 4px var(--name-shadow-color)) drop-shadow(0 0 2px var(--name-glow-color));
+    }
+    100% {
+        filter: drop-shadow(0 3px 4px var(--name-shadow-color)) drop-shadow(0 0 6px var(--name-glow-color));
+    }
+}
+
+/* Denyut Lens Flare */
+.flare-pulse-1, .flare-pulse-2, .flare-pulse-3 {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: flarePulse var(--speed) ease-in-out infinite alternate;
+}
+.flare-pulse-2 { animation-delay: calc(var(--speed) * 0.23); }
+.flare-pulse-3 { animation-delay: calc(var(--speed) * 0.43); }
+
+@keyframes flarePulse {
+    0% { opacity: 0.4; transform: scale(0.92); }
+    100% { opacity: 0.8; transform: scale(1.08); }
+}
