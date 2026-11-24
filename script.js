@@ -24,13 +24,13 @@ const TEXT_FONT_OPTIONS = [
     { value: 'montserrat', label: 'Montserrat', family: "'Montserrat', sans-serif", googleFamily: 'Montserrat' },
     { value: 'roboto', label: 'Roboto', family: "'Roboto', sans-serif", googleFamily: 'Roboto' },
     { value: 'open-sans', label: 'Open Sans', family: "'Open Sans', sans-serif", googleFamily: 'Open Sans' },
-    { value: 'lato', label: 'Lato', family: "'Lato', sans-serif", googleFamily: 'Lato', googleWeight: 900 },
+    { value: 'lato', label: 'Lato', family: "'Lato', sans-serif", googleFamily: 'Lato' },
     { value: 'poppins', label: 'Poppins', family: "'Poppins', sans-serif", googleFamily: 'Poppins' },
     { value: 'playfair', label: 'Playfair Display', family: "'Playfair Display', serif", googleFamily: 'Playfair Display' },
     { value: 'nunito', label: 'Nunito', family: "'Nunito', sans-serif", googleFamily: 'Nunito' },
     { value: 'raleway', label: 'Raleway', family: "'Raleway', sans-serif", googleFamily: 'Raleway' },
     { value: 'source-sans', label: 'Source Sans 3', family: "'Source Sans 3', sans-serif", googleFamily: 'Source Sans 3' },
-    { value: 'ubuntu', label: 'Ubuntu', family: "'Ubuntu', sans-serif", googleFamily: 'Ubuntu', googleWeight: 700 }
+    { value: 'ubuntu', label: 'Ubuntu', family: "'Ubuntu', sans-serif", googleFamily: 'Ubuntu' }
 ];
 const TEXT_FONT_OPTIONS_BY_VALUE = new Map(TEXT_FONT_OPTIONS.map(option => [option.value, option]));
 const TEMPLATE_LABELS = {
@@ -116,7 +116,7 @@ async function loadGoogleFontStylesheet(option) {
         const promise = new Promise((resolve, reject) => {
             const link = document.createElement('link');
             const query = new URLSearchParams({
-                family: `${option.googleFamily}:ital,wght@1,${option.googleWeight || 800}`,
+                family: `${option.googleFamily}:ital,wght@1,800`,
                 display: 'swap'
             });
             link.rel = 'stylesheet';
@@ -146,7 +146,7 @@ async function getExportFontFaceCss(option) {
             const fontFaceRule = (stylesheetText.match(/@font-face\s*\{[^}]+\}/g) || []).find(rule =>
                 familyPattern.test(rule) &&
                 /font-style:\s*italic/.test(rule) &&
-                new RegExp(`font-weight:\\s*${option.googleWeight || 800}`).test(rule) &&
+                /font-weight:\s*800/.test(rule) &&
                 /unicode-range:\s*U\+0000-00FF/i.test(rule)
             );
             const fontUrl = fontFaceRule && /src:\s*url\(([^)]+)\)/.exec(fontFaceRule)?.[1];
@@ -171,11 +171,7 @@ async function getExportFontFaceCss(option) {
 
 async function getExportFontCss() {
     const fontKeys = ['nameFont', 'subTitleFont'].map(id => document.getElementById(id)?.value || 'montserrat');
-    const options = [...new Set(fontKeys)].map(key => {
-        const option = TEXT_FONT_OPTIONS_BY_VALUE.get(key);
-        if (!option) throw new Error(`Pilihan font "${key}" tidak dikenal`);
-        return option;
-    });
+    const options = [...new Set(fontKeys)].map(key => TEXT_FONT_OPTIONS_BY_VALUE.get(key)).filter(Boolean);
     return (await Promise.all(options.map(getExportFontFaceCss))).join('');
 }
 
@@ -185,19 +181,12 @@ async function setTextFont(target, fontKey) {
     const selectId = target === 'name' ? 'nameFont' : target === 'subTitle' ? 'subTitleFont' : null;
     const textElement = textId && document.getElementById(textId);
     const select = selectId && document.getElementById(selectId);
-    if (!option) {
-        showToast('Pilihan font tidak dikenal.');
-        return;
-    }
-    if (!textElement || !select) {
-        showToast('Kontrol font tidak tersedia.');
-        return;
-    }
+    if (!option || !textElement || !select) return;
 
     try {
         if (option.googleFamily) {
             await loadGoogleFontStylesheet(option);
-            const loadedFonts = await document.fonts.load(`italic ${option.googleWeight || 800} 24px "${option.googleFamily}"`);
+            const loadedFonts = await document.fonts.load(`italic 800 24px "${option.googleFamily}"`);
             if (!loadedFonts.length) throw new Error(`Font ${option.label} tidak tersedia`);
         }
         textElement.setAttribute('font-family', option.family);
@@ -334,9 +323,8 @@ function updateName(value) {
     const nameText = document.getElementById('nameText');
     if (!nameText) return;
 
-    const cleanName = (value || '').trim() || 'Nama';
+    const cleanName = (value || '').trim() || 'nama anda';
     nameText.textContent = cleanName;
-    document.title = `${cleanName} - Animasi Lower Third`;
     updateBannerLayout();
 }
 
@@ -562,8 +550,6 @@ function renderTemplateGallery(templates, selectedTemplate) {
         button.classList.toggle('is-selected', isSelected);
         button.setAttribute('aria-pressed', String(isSelected));
     });
-    const templateCount = document.getElementById('templateCount');
-    if (templateCount) templateCount.textContent = `${gallery.querySelectorAll('.template-card').length} tema`;
 }
 
 function setNameTemplate(template) {
@@ -716,7 +702,7 @@ function setNameTemplate(template) {
         if (input) input.value = effectColors[key];
         applyEffectColor(key, effectColors[key]);
     });
-    if (selectedTemplate === 'ocean') {
+    if (template === 'ocean') {
         document.getElementById('mainOuterPath')?.setAttribute('fill', 'url(#outerFrameBlue)');
         document.getElementById('mainInnerPath')?.setAttribute('fill', 'url(#mainBlueBg)');
         document.getElementById('subInnerPath')?.setAttribute('fill', 'url(#subSilverBg)');
@@ -1065,7 +1051,7 @@ async function recordVideo() {
             svgElement,
             canvas.width,
             canvas.height,
-            await getExportFontCss()
+            await getMontserratExportFontCss()
         );
 
         const recordDurationMs = 10000;
@@ -1210,7 +1196,7 @@ async function recordGif() {
             svgElement,
             width,
             height,
-            await getExportFontCss()
+            await getMontserratExportFontCss()
         );
         const image = new Image();
         image.decoding = 'async';
@@ -1378,7 +1364,7 @@ async function exportPng() {
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
-        const fontCss = await getExportFontCss();
+        const fontCss = await getMontserratExportFontCss();
         if (document.fonts?.ready) await document.fonts.ready;
         animationTimeline = createAnimationTimeline();
         const buildFrameSvgString = createExportSvgFrameBuilder(svgElement, width, height, fontCss);
@@ -1443,7 +1429,7 @@ async function exportPng() {
 document.addEventListener('DOMContentLoaded', () => {
     updateName(document.getElementById('nameInput')?.value || 'name');
     updateSubTitle(document.getElementById('subTitleInput')?.value || 'Jabatan');
-    setNameTemplate('ocean');
+    setNameTemplate(document.getElementById('nameTemplate')?.value || 'ocean');
     setComputerModel(document.getElementById('computerModel')?.value || 'laptop');
     if (document.fonts?.ready) {
         document.fonts.ready.then(() => updateBannerLayout());
