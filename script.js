@@ -1,6 +1,14 @@
 let toastTimer = null;
 let measureCanvas = null;
 let zoomPercent = 100;
+let activeElementTemplate = 'classic';
+let decorationPosition = null;
+let manualDecorationPosition = false;
+let decorationDragOffset = null;
+const customCanvasElements = [];
+let selectedCustomElementId = null;
+let customElementSequence = 0;
+let customElementDrag = null;
 const fontStylesheetPromises = new Map();
 const exportFontCssPromises = new Map();
 let gifEncoderPromise = null;
@@ -10,6 +18,7 @@ const PROFESSIONAL_DEFAULTS = Object.freeze({
     subtitle: 'Jabatan',
     nameFont: 'montserrat',
     subtitleFont: 'montserrat',
+    elementTemplate: 'classic',
     template: 'corporate',
     computerModel: 'laptop',
     background: 'checker',
@@ -79,6 +88,79 @@ const TEXT_FONT_OPTIONS = [
     { value: 'merriweather', label: 'Merriweather', family: 'Merriweather, serif', googleFamily: 'Merriweather', googleWeight: 900 }
 ];
 const TEXT_FONT_OPTIONS_BY_VALUE = new Map(TEXT_FONT_OPTIONS.map(option => [option.value, option]));
+const ELEMENT_TEMPLATE_LABELS = {
+    classic: 'Klasik Miring',
+    rounded: 'Modern Rounded',
+    chevron: 'Panah Chevron',
+    split: 'Pita Split',
+    hexagon: 'Hexagon Modern',
+    capsule: 'Kapsul Elegan',
+    ticket: 'Tiket Premium',
+    wave: 'Gelombang Dinamis',
+    clipped: 'Sudut Presisi',
+    homeplate: 'Panah Tegas',
+    tag: 'Label Lengkung',
+    flag: 'Pita Bendera'
+};
+const ELEMENT_TEMPLATE_ACCENTS = {
+    rounded: {
+        primary: ['M 0 190 H 30 M 0 224 H 30'],
+        secondary: ['M 7 207 H 23'],
+        dots: [[5, 238, 2], [25, 238, 2]]
+    },
+    chevron: {
+        primary: ['M 0 188 L 14 204 L 0 220 M 14 188 L 28 204 L 14 220'],
+        secondary: ['M 2 232 H 28']
+    },
+    split: {
+        primary: ['M 0 188 L 12 204 L 0 220 M 18 188 L 30 204 L 18 220'],
+        secondary: ['M 2 232 L 15 245 L 28 232']
+    },
+    hexagon: {
+        primary: ['M 3 198 L 10 190 H 22 L 29 198 L 22 206 H 10 Z'],
+        secondary: ['M 3 220 L 10 212 H 22 L 29 220 L 22 228 H 10 Z']
+    },
+    capsule: {
+        primary: ['M 8 190 V 225 A 8 8 0 0 0 24 225 V 190 A 8 8 0 0 0 8 190 Z'],
+        secondary: ['M 16 198 V 217'],
+        dots: [[4, 236, 2], [28, 236, 2]]
+    },
+    ticket: {
+        primary: ['M 6 188 V 232 M 24 188 V 232'],
+        secondary: ['M 15 188 V 232'],
+        dots: [[15, 195, 1.8], [15, 210, 1.8], [15, 225, 1.8]]
+    },
+    wave: {
+        primary: ['M 0 194 C 8 184 16 204 24 194 S 40 204 48 194', 'M 0 222 C 8 212 16 232 24 222 S 40 232 48 222'],
+        secondary: ['M 5 208 H 33']
+    },
+    clipped: {
+        primary: ['M 0 199 V 188 H 12 M 20 188 H 32 V 199', 'M 0 219 V 230 H 12 M 20 230 H 32 V 219'],
+        secondary: ['M 9 209 H 23']
+    },
+    homeplate: {
+        primary: ['M 0 190 H 30 L 15 204 Z', 'M 0 216 H 30 L 15 230 Z'],
+        secondary: ['M 6 210 H 24']
+    },
+    tag: {
+        primary: ['M 0 192 H 18 L 30 204 L 18 216 H 0 Z'],
+        secondary: ['M 7 204 A 3 3 0 1 0 13 204 A 3 3 0 1 0 7 204', 'M 18 204 H 27']
+    },
+    flag: {
+        primary: ['M 4 188 V 232 M 4 191 C 13 185 21 198 31 191 V 211 C 21 218 13 205 4 211 Z'],
+        secondary: ['M 9 201 H 25']
+    }
+};
+const ELEMENT_TEMPLATE_PREVIEW_COLORS = {
+    mainFill: '#0b1f3a',
+    mainOuter: '#c5a15d',
+    mainNeonOne: '#e6c980',
+    nameText: '#ffffff',
+    subFill: '#f8fafc',
+    subFrame: '#203a5b',
+    subText: '#102a43',
+    icon: '#102a43'
+};
 const TEMPLATE_LABELS = {
     ocean: 'Biru Samudra',
     silver: 'Perak',
@@ -119,7 +201,27 @@ const TEMPLATE_LABELS = {
     pearl: 'Mutiara Perak',
     coral: 'Coral Modern',
     galaxy: 'Galaksi',
-    iceBlue: 'Es Biru'
+    iceBlue: 'Es Biru',
+    cobalt: 'Kobalt Modern',
+    amethyst: 'Amethyst Elegan',
+    pastelPink: 'Merah Muda Pastel',
+    mintCream: 'Mint Segar',
+    bronze: 'Perunggu Mewah',
+    obsidian: 'Obsidian Perak',
+    velvet: 'Velvet Merah',
+    desertRose: 'Mawar Gurun',
+    tropical: 'Tropis Cerah',
+    aurora: 'Aurora Borealis',
+    cyberpunk: 'Cyberpunk Neon',
+    royalTeal: 'Teal Kerajaan',
+    honey: 'Madu Hangat',
+    slate: 'Batu Slate',
+    olive: 'Zaitun Natural',
+    plum: 'Plum Klasik',
+    sky: 'Langit Pagi',
+    navySilver: 'Navy dan Perak',
+    cherryBlossom: 'Sakura',
+    volcanic: 'Lava Vulkanik'
 };
 const ADDITIONAL_TEMPLATE_THEMES = {
     sunset: {
@@ -221,6 +323,86 @@ const ADDITIONAL_TEMPLATE_THEMES = {
     iceBlue: {
         base: 'arctic',
         colors: { mainFill: '#164e63', mainOuter: '#e0f2fe', mainNeonOne: '#ffffff', mainNeonTwo: '#7dd3fc', subFill: '#f8fafc', subFrame: '#38bdf8', subText: '#0c4a6e', subNeon: '#bae6fd', leftAccentOne: '#e0f2fe', leftAccentTwo: '#0c4a6e', rightAccentOne: '#0c4a6e', rightAccentTwo: '#38bdf8' }
+    },
+    cobalt: {
+        base: 'royal',
+        colors: { mainFill: '#082f6b', mainOuter: '#93c5fd', mainNeonOne: '#bfdbfe', mainNeonTwo: '#2563eb', subFill: '#eff6ff', subFrame: '#1d4ed8', subText: '#172554', subNeon: '#60a5fa', leftAccentOne: '#93c5fd', leftAccentTwo: '#172554', rightAccentOne: '#172554', rightAccentTwo: '#2563eb' }
+    },
+    amethyst: {
+        base: 'violet',
+        colors: { mainFill: '#3b0764', mainOuter: '#e9d5ff', mainNeonOne: '#f3e8ff', mainNeonTwo: '#9333ea', subFill: '#faf5ff', subFrame: '#9333ea', subText: '#3b0764', subNeon: '#c084fc', leftAccentOne: '#e9d5ff', leftAccentTwo: '#3b0764', rightAccentOne: '#3b0764', rightAccentTwo: '#9333ea' }
+    },
+    pastelPink: {
+        base: 'rose',
+        colors: { mainFill: '#9d174d', mainOuter: '#fbcfe8', mainNeonOne: '#fce7f3', mainNeonTwo: '#ec4899', subFill: '#fff7fb', subFrame: '#db2777', subText: '#831843', subNeon: '#f9a8d4', leftAccentOne: '#fbcfe8', leftAccentTwo: '#831843', rightAccentOne: '#831843', rightAccentTwo: '#ec4899' }
+    },
+    mintCream: {
+        base: 'teal',
+        colors: { mainFill: '#064e3b', mainOuter: '#a7f3d0', mainNeonOne: '#d1fae5', mainNeonTwo: '#10b981', subFill: '#f0fdf4', subFrame: '#059669', subText: '#064e3b', subNeon: '#6ee7b7', leftAccentOne: '#a7f3d0', leftAccentTwo: '#064e3b', rightAccentOne: '#064e3b', rightAccentTwo: '#10b981' }
+    },
+    bronze: {
+        base: 'graphiteGold',
+        colors: { mainFill: '#422006', mainOuter: '#fcd34d', mainNeonOne: '#fef3c7', mainNeonTwo: '#d97706', subFill: '#fffbeb', subFrame: '#b45309', subText: '#451a03', subNeon: '#fbbf24', leftAccentOne: '#fcd34d', leftAccentTwo: '#451a03', rightAccentOne: '#451a03', rightAccentTwo: '#d97706' }
+    },
+    obsidian: {
+        base: 'charcoal',
+        colors: { mainFill: '#09090b', mainOuter: '#a1a1aa', mainNeonOne: '#e4e4e7', mainNeonTwo: '#52525b', subFill: '#fafafa', subFrame: '#52525b', subText: '#18181b', subNeon: '#d4d4d8', leftAccentOne: '#a1a1aa', leftAccentTwo: '#18181b', rightAccentOne: '#18181b', rightAccentTwo: '#71717a' }
+    },
+    velvet: {
+        base: 'burgundy',
+        colors: { mainFill: '#3f0b1c', mainOuter: '#fda4af', mainNeonOne: '#ffe4e6', mainNeonTwo: '#be123c', subFill: '#fff1f2', subFrame: '#9f1239', subText: '#4c0519', subNeon: '#fb7185', leftAccentOne: '#fda4af', leftAccentTwo: '#4c0519', rightAccentOne: '#4c0519', rightAccentTwo: '#be123c' }
+    },
+    desertRose: {
+        base: 'copper',
+        colors: { mainFill: '#78350f', mainOuter: '#f5c2a0', mainNeonOne: '#ffedd5', mainNeonTwo: '#c2410c', subFill: '#fff7ed', subFrame: '#c2410c', subText: '#7c2d12', subNeon: '#fdba74', leftAccentOne: '#f5c2a0', leftAccentTwo: '#7c2d12', rightAccentOne: '#7c2d12', rightAccentTwo: '#c2410c' }
+    },
+    tropical: {
+        base: 'emerald',
+        colors: { mainFill: '#064e3b', mainOuter: '#5eead4', mainNeonOne: '#ccfbf1', mainNeonTwo: '#0d9488', subFill: '#ecfdf5', subFrame: '#0f766e', subText: '#064e3b', subNeon: '#2dd4bf', leftAccentOne: '#5eead4', leftAccentTwo: '#064e3b', rightAccentOne: '#064e3b', rightAccentTwo: '#0d9488' }
+    },
+    aurora: {
+        base: 'midnight',
+        colors: { mainFill: '#10213b', mainOuter: '#5eead4', mainNeonOne: '#a7f3d0', mainNeonTwo: '#818cf8', subFill: '#ecfeff', subFrame: '#0f766e', subText: '#164e63', subNeon: '#67e8f9', leftAccentOne: '#5eead4', leftAccentTwo: '#312e81', rightAccentOne: '#312e81', rightAccentTwo: '#818cf8' }
+    },
+    cyberpunk: {
+        base: 'midnight',
+        colors: { mainFill: '#18102f', mainOuter: '#f0abfc', mainNeonOne: '#f5d0fe', mainNeonTwo: '#e11dca', subFill: '#fdf4ff', subFrame: '#a21caf', subText: '#4a044e', subNeon: '#e879f9', leftAccentOne: '#f0abfc', leftAccentTwo: '#312e81', rightAccentOne: '#312e81', rightAccentTwo: '#e11dca' }
+    },
+    royalTeal: {
+        base: 'teal',
+        colors: { mainFill: '#042f3a', mainOuter: '#67e8f9', mainNeonOne: '#cffafe', mainNeonTwo: '#0891b2', subFill: '#ecfeff', subFrame: '#0e7490', subText: '#164e63', subNeon: '#22d3ee', leftAccentOne: '#67e8f9', leftAccentTwo: '#164e63', rightAccentOne: '#164e63', rightAccentTwo: '#0891b2' }
+    },
+    honey: {
+        base: 'graphiteGold',
+        colors: { mainFill: '#422006', mainOuter: '#fbbf24', mainNeonOne: '#fef3c7', mainNeonTwo: '#f59e0b', subFill: '#fffbeb', subFrame: '#a16207', subText: '#451a03', subNeon: '#fcd34d', leftAccentOne: '#fbbf24', leftAccentTwo: '#451a03', rightAccentOne: '#451a03', rightAccentTwo: '#f59e0b' }
+    },
+    slate: {
+        base: 'charcoal',
+        colors: { mainFill: '#1e293b', mainOuter: '#cbd5e1', mainNeonOne: '#f1f5f9', mainNeonTwo: '#64748b', subFill: '#f8fafc', subFrame: '#475569', subText: '#1e293b', subNeon: '#94a3b8', leftAccentOne: '#cbd5e1', leftAccentTwo: '#1e293b', rightAccentOne: '#1e293b', rightAccentTwo: '#64748b' }
+    },
+    olive: {
+        base: 'emerald',
+        colors: { mainFill: '#28320b', mainOuter: '#d9e3a2', mainNeonOne: '#ecfccb', mainNeonTwo: '#84a11d', subFill: '#f7fee7', subFrame: '#65751b', subText: '#28320b', subNeon: '#a3b84b', leftAccentOne: '#d9e3a2', leftAccentTwo: '#28320b', rightAccentOne: '#28320b', rightAccentTwo: '#84a11d' }
+    },
+    plum: {
+        base: 'violet',
+        colors: { mainFill: '#3b123f', mainOuter: '#d8b4fe', mainNeonOne: '#f3e8ff', mainNeonTwo: '#9333ea', subFill: '#faf5ff', subFrame: '#7e22ce', subText: '#3b0764', subNeon: '#c084fc', leftAccentOne: '#d8b4fe', leftAccentTwo: '#3b123f', rightAccentOne: '#3b123f', rightAccentTwo: '#9333ea' }
+    },
+    sky: {
+        base: 'arctic',
+        colors: { mainFill: '#0c4a6e', mainOuter: '#bae6fd', mainNeonOne: '#e0f2fe', mainNeonTwo: '#0ea5e9', subFill: '#f0f9ff', subFrame: '#0284c7', subText: '#0c4a6e', subNeon: '#7dd3fc', leftAccentOne: '#bae6fd', leftAccentTwo: '#0c4a6e', rightAccentOne: '#0c4a6e', rightAccentTwo: '#0ea5e9' }
+    },
+    navySilver: {
+        base: 'corporate',
+        colors: { mainFill: '#102a43', mainOuter: '#cbd5e1', mainNeonOne: '#f1f5f9', mainNeonTwo: '#94a3b8', subFill: '#f8fafc', subFrame: '#334e68', subText: '#102a43', subNeon: '#cbd5e1', leftAccentOne: '#cbd5e1', leftAccentTwo: '#102a43', rightAccentOne: '#102a43', rightAccentTwo: '#64748b' }
+    },
+    cherryBlossom: {
+        base: 'rose',
+        colors: { mainFill: '#831843', mainOuter: '#f9a8d4', mainNeonOne: '#fce7f3', mainNeonTwo: '#ec4899', subFill: '#fff7fb', subFrame: '#db2777', subText: '#831843', subNeon: '#f9a8d4', leftAccentOne: '#f9a8d4', leftAccentTwo: '#831843', rightAccentOne: '#831843', rightAccentTwo: '#ec4899' }
+    },
+    volcanic: {
+        base: 'crimson',
+        colors: { mainFill: '#292524', mainOuter: '#fb923c', mainNeonOne: '#fed7aa', mainNeonTwo: '#dc2626', subFill: '#fff7ed', subFrame: '#c2410c', subText: '#431407', subNeon: '#fb923c', leftAccentOne: '#fb923c', leftAccentTwo: '#292524', rightAccentOne: '#292524', rightAccentTwo: '#dc2626' }
     }
 };
 
@@ -435,13 +617,15 @@ function toggleAnimationPlayback() {
     })));
     const shouldPause = !animationsPaused;
     if (shouldPause) {
-        const currentTimes = animations.map(animation => Number(animation.currentTime));
-        animations.forEach((animation, index) => {
+        animations.forEach(animation => {
             animation.pause();
-            if (Number.isFinite(currentTimes[index])) animation.currentTime = currentTimes[index];
+            animation.currentTime = 0;
         });
     } else {
-        animations.forEach(animation => animation.play());
+        animations.forEach(animation => {
+            animation.currentTime = 0;
+            animation.play();
+        });
     }
     animationsPaused = shouldPause;
 
@@ -465,11 +649,119 @@ function zoomView(amount) {
 }
 
 function setComputerModel(model) {
-    const models = ['laptop', 'monitor', 'desktop', 'tablet', 'server'];
+    const models = ['laptop', 'monitor', 'desktop', 'tablet', 'server', 'flower', 'star', 'leaf', 'crown', 'sparkle', 'heart'];
     const selected = models.includes(model) ? model : 'laptop';
     document.querySelectorAll('.computer-icon').forEach(icon => {
         icon.setAttribute('display', icon.id === `icon-${selected}` ? 'inline' : 'none');
     });
+    const computer = document.getElementById('computerIconArea');
+    const select = document.getElementById('computerModel');
+    if (computer && select) {
+        computer.setAttribute('aria-label', `Seret ${select.options[select.selectedIndex].textContent} untuk memindahkannya`);
+    }
+}
+
+function getDefaultDecorationPosition(template, subLeft, subRight) {
+    const rightSideTemplates = ['chevron', 'hexagon', 'ticket', 'clipped', 'homeplate', 'tag'];
+    const x = rightSideTemplates.includes(template) ? subRight - 100 : subLeft + 20;
+    return { x: Math.round(x), y: 281 };
+}
+
+function updateDecorationPositionControls(position) {
+    const xRange = document.getElementById('decorationXRange');
+    const yRange = document.getElementById('decorationYRange');
+    const xValue = document.getElementById('decorationXValue');
+    const yValue = document.getElementById('decorationYValue');
+    if (xRange) xRange.value = String(position.x);
+    if (yRange) yRange.value = String(position.y);
+    if (xValue) xValue.textContent = String(position.x);
+    if (yValue) yValue.textContent = String(position.y);
+}
+
+function applyDecorationPosition(x, y, isManual) {
+    const position = {
+        x: Math.max(40, Math.min(1180, Math.round(x))),
+        y: Math.max(160, Math.min(405, Math.round(y)))
+    };
+    decorationPosition = position;
+    if (typeof isManual === 'boolean') manualDecorationPosition = isManual;
+
+    const computer = document.getElementById('computerIconArea');
+    if (computer) computer.setAttribute('transform', `translate(${position.x} ${position.y})`);
+    updateDecorationPositionControls(position);
+
+    const divider = document.getElementById('subDivider');
+    if (divider) {
+        const dividerX = position.x < 640 ? position.x + 125 : position.x - 25;
+        divider.setAttribute('x1', dividerX);
+        divider.setAttribute('x2', dividerX - 10);
+        divider.setAttribute('y1', position.y);
+        divider.setAttribute('y2', position.y + 45);
+    }
+}
+
+function setDecorationPosition(axis, value) {
+    if (!decorationPosition) decorationPosition = { x: 292, y: 281 };
+    const nextPosition = { ...decorationPosition };
+    if (axis === 'x') nextPosition.x = Number(value);
+    if (axis === 'y') nextPosition.y = Number(value);
+    applyDecorationPosition(nextPosition.x, nextPosition.y, true);
+}
+
+function resetDecorationPosition() {
+    manualDecorationPosition = false;
+    decorationPosition = null;
+    updateBannerLayout();
+    showToast('Posisi perangkat atau hiasan disesuaikan kembali dengan bentuk elemen.');
+}
+
+function getSvgPointFromPointer(event, svg) {
+    const matrix = svg.getScreenCTM();
+    if (!matrix) return null;
+    const point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    return point.matrixTransform(matrix.inverse());
+}
+
+function initializeDecorationDragging() {
+    const svg = document.getElementById('lowerThirdSvg');
+    const computer = document.getElementById('computerIconArea');
+    if (!svg || !computer) return;
+
+    computer.addEventListener('pointerdown', event => {
+        if (event.button !== 0 || !decorationPosition) return;
+        const point = getSvgPointFromPointer(event, svg);
+        if (!point) return;
+
+        decorationDragOffset = {
+            x: point.x - decorationPosition.x,
+            y: point.y - decorationPosition.y
+        };
+        computer.setPointerCapture(event.pointerId);
+        computer.classList.add('is-dragging');
+        event.preventDefault();
+    });
+
+    computer.addEventListener('pointermove', event => {
+        if (!decorationDragOffset || !computer.hasPointerCapture(event.pointerId)) return;
+        const point = getSvgPointFromPointer(event, svg);
+        if (!point) return;
+        applyDecorationPosition(
+            point.x - decorationDragOffset.x,
+            point.y - decorationDragOffset.y,
+            true
+        );
+    });
+
+    const finishDragging = event => {
+        if (!decorationDragOffset) return;
+        decorationDragOffset = null;
+        computer.classList.remove('is-dragging');
+        if (computer.hasPointerCapture(event.pointerId)) computer.releasePointerCapture(event.pointerId);
+    };
+    computer.addEventListener('pointerup', finishDragging);
+    computer.addEventListener('pointercancel', finishDragging);
 }
 
 function updateName(value) {
@@ -537,6 +829,7 @@ function centerTextWithinShape(textId, shapeId) {
     if (!text || !shape) return;
 
     const bounds = shape.getBBox();
+    if (!bounds.width || !bounds.height) return;
     text.setAttribute('x', bounds.x + bounds.width / 2);
 
     const textBounds = text.getBBox();
@@ -561,14 +854,13 @@ function updateBannerLayout() {
 }
 
 function updateMainBannerSize(leftX, rightX) {
-    const innerLeft = leftX + 5;
-    const innerRight = rightX - 6;
-    const outerPath = `M ${leftX} 154 L ${rightX} 154 C ${rightX + 18} 154 ${rightX + 27} 168 ${rightX + 17} 184 L ${rightX - 43} 271 C ${rightX - 51} 282 ${rightX - 63} 288 ${rightX - 77} 288 L ${leftX - 79} 288 L ${leftX - 14} 168 C ${leftX - 9} 159 ${leftX - 5} 154 ${leftX} 154 Z`;
-    const innerPath = `M ${innerLeft} 161 L ${innerRight} 161 C ${innerRight + 14} 161 ${innerRight + 21} 171 ${innerRight + 14} 184 L ${innerRight - 44} 267 C ${innerRight - 50} 276 ${innerRight - 60} 281 ${innerRight - 72} 281 L ${innerLeft - 71} 281 L ${innerLeft - 12} 173 C ${innerLeft - 8} 165 ${innerLeft - 4} 161 ${innerLeft} 161 Z`;
+    const outerPath = getMainBannerPath(leftX, rightX, false);
+    const innerPath = getMainBannerPath(leftX, rightX, true);
 
     document.getElementById('mainOuterPath')?.setAttribute('d', outerPath);
     document.getElementById('mainInnerPath')?.setAttribute('d', innerPath);
     document.getElementById('mainInnerClipPath')?.setAttribute('d', innerPath);
+    renderElementTemplateAccents(leftX, rightX);
     centerTextWithinShape('nameText', 'mainInnerPath');
 
     ['lightMain', 'lightMainSec', 'lightMainCore', 'lightMainSecCore'].forEach(id => {
@@ -583,12 +875,60 @@ function updateMainBannerSize(leftX, rightX) {
     updateSubBannerSize(leftX, rightX);
 }
 
+function renderElementTemplateAccents(leftX, rightX) {
+    const accentGroup = document.getElementById('elementTemplateAccents');
+    if (!accentGroup) return;
+
+    accentGroup.replaceChildren();
+    const accents = ELEMENT_TEMPLATE_ACCENTS[activeElementTemplate];
+    if (!accents) {
+        accentGroup.setAttribute('display', 'none');
+        accentGroup.removeAttribute('data-element-template');
+        return;
+    }
+
+    [
+        { transform: `translate(${leftX + 18} 0)` },
+        { transform: `translate(${rightX - 18} 0) scale(-1 1)` }
+    ].forEach(side => {
+        const motif = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        motif.setAttribute('transform', side.transform);
+        accents.primary.forEach(path => appendTemplatePreviewNode(motif, 'path', {
+            d: path,
+            fill: 'none',
+            stroke: 'var(--template-accent-primary)',
+            'stroke-width': 2.4,
+            'stroke-linecap': 'round',
+            'stroke-linejoin': 'round'
+        }));
+        accents.secondary.forEach(path => appendTemplatePreviewNode(motif, 'path', {
+            d: path,
+            fill: 'none',
+            stroke: 'var(--template-accent-secondary)',
+            'stroke-width': 1.8,
+            'stroke-linecap': 'round',
+            'stroke-linejoin': 'round'
+        }));
+        (accents.dots || []).forEach(([cx, cy, radius]) => appendTemplatePreviewNode(motif, 'circle', {
+            cx,
+            cy,
+            r: radius,
+            fill: 'var(--template-accent-secondary)',
+            stroke: 'none'
+        }));
+        accentGroup.appendChild(motif);
+    });
+
+    accentGroup.setAttribute('data-element-template', activeElementTemplate);
+    accentGroup.setAttribute('display', 'inline');
+}
+
 function updateSubBannerSize(leftX, rightX) {
     const subLeft = leftX + 55;
     const subRight = rightX - 50;
 
-    const outerPath = `M ${subLeft + 42} 270 L ${subRight + 28} 270 C ${subRight + 38} 270 ${subRight + 43} 279 ${subRight + 36} 288 L ${subRight - 7} 329 C ${subRight - 13} 335 ${subRight - 22} 338 ${subRight - 32} 338 L ${subLeft - 39} 338 C ${subLeft - 51} 338 ${subLeft - 56} 329 ${subLeft - 49} 320 L ${subLeft - 16} 279 C ${subLeft - 11} 273 ${subLeft - 6} 270 ${subLeft + 42} 270 Z`;
-    const innerPath = `M ${subLeft + 46} 273 L ${subRight + 23} 273 C ${subRight + 31} 273 ${subRight + 35} 280 ${subRight + 30} 287 L ${subRight - 11} 325 C ${subRight - 16} 330 ${subRight - 23} 333 ${subRight - 31} 333 L ${subLeft - 32} 333 C ${subLeft - 41} 333 ${subLeft - 45} 326 ${subLeft - 40} 319 L ${subLeft - 10} 281 C ${subLeft - 6} 276 ${subLeft - 1} 273 ${subLeft + 46} 273 Z`;
+    const outerPath = getSubBannerPath(subLeft, subRight, false);
+    const innerPath = getSubBannerPath(subLeft, subRight, true);
 
     document.getElementById('subOuterPath')?.setAttribute('d', outerPath);
     document.getElementById('subInnerPath')?.setAttribute('d', innerPath);
@@ -600,14 +940,8 @@ function updateSubBannerSize(leftX, rightX) {
 
     centerTextWithinShape('subTitleText', 'subInnerPath');
 
-    const divider = document.getElementById('subDivider');
-    if (divider) {
-        divider.setAttribute('x1', subLeft + 145);
-        divider.setAttribute('x2', subLeft + 135);
-    }
-
-    const computer = document.getElementById('computerIconArea');
-    if (computer) computer.setAttribute('transform', `translate(${subLeft + 20} 281)`);
+    const position = decorationPosition || getDefaultDecorationPosition(activeElementTemplate, subLeft, subRight);
+    applyDecorationPosition(position.x, position.y, manualDecorationPosition);
 
     const accentOne = document.getElementById('subAccentOne');
     const accentTwo = document.getElementById('subAccentTwo');
@@ -619,6 +953,97 @@ function updateSubBannerSize(leftX, rightX) {
     }
 }
 
+function roundedRectPath(left, top, right, bottom, radius) {
+    const corner = Math.min(radius, (right - left) / 2, (bottom - top) / 2);
+    return `M ${left + corner} ${top} H ${right - corner} Q ${right} ${top} ${right} ${top + corner} V ${bottom - corner} Q ${right} ${bottom} ${right - corner} ${bottom} H ${left + corner} Q ${left} ${bottom} ${left} ${bottom - corner} V ${top + corner} Q ${left} ${top} ${left + corner} ${top} Z`;
+}
+
+function getElementShapePath(template, left, top, right, bottom) {
+    const middle = (top + bottom) / 2;
+    const width = right - left;
+    const height = bottom - top;
+    const center = left + width / 2;
+
+    if (template === 'rounded') return roundedRectPath(left, top, right, bottom, height * 0.22);
+    if (template === 'chevron') {
+        const point = Math.min(height * 0.72, width * 0.1);
+        return `M ${left} ${top} H ${right - point} L ${right} ${middle} L ${right - point} ${bottom} H ${left} Z`;
+    }
+    if (template === 'split') {
+        const notch = height * 0.18;
+        const point = height * 0.5;
+        return `M ${left + point} ${top} H ${right - point} L ${right} ${middle} L ${right - point} ${bottom} H ${left + point} L ${left + notch} ${middle + notch} L ${left} ${middle} L ${left + notch} ${middle - notch} Z`;
+    }
+    if (template === 'hexagon') {
+        const corner = Math.min(height * 0.42, width * 0.16);
+        return `M ${left + corner} ${top} H ${right - corner} L ${right} ${middle} L ${right - corner} ${bottom} H ${left + corner} L ${left} ${middle} Z`;
+    }
+    if (template === 'capsule') return roundedRectPath(left, top, right, bottom, height / 2);
+    if (template === 'ticket') {
+        const notch = Math.min(height * 0.2, width * 0.08);
+        return `M ${left + notch} ${top} H ${right - notch} V ${middle - notch} A ${notch} ${notch} 0 0 0 ${right - notch} ${middle + notch} V ${bottom} H ${left + notch} V ${middle + notch} A ${notch} ${notch} 0 0 0 ${left + notch} ${middle - notch} Z`;
+    }
+    if (template === 'wave') {
+        const curve = height * 0.34;
+        return `M ${left} ${top + curve} Q ${center} ${top - curve} ${right} ${top + curve} V ${bottom - curve} Q ${center} ${bottom + curve} ${left} ${bottom - curve} Z`;
+    }
+    if (template === 'clipped') {
+        const corner = Math.min(height * 0.22, width * 0.06);
+        return `M ${left + corner} ${top} H ${right - corner} L ${right} ${top + corner} V ${bottom - corner} L ${right - corner} ${bottom} H ${left + corner} L ${left} ${bottom - corner} V ${top + corner} Z`;
+    }
+    if (template === 'homeplate') {
+        const shoulder = height * 0.28;
+        return `M ${left} ${top} H ${right} V ${bottom - shoulder} L ${center} ${bottom} L ${left} ${bottom - shoulder} Z`;
+    }
+    if (template === 'tag') {
+        const point = Math.min(height * 0.58, width * 0.1);
+        const curve = height * 0.25;
+        return `M ${left + curve} ${top} H ${right - point} L ${right} ${middle} L ${right - point} ${bottom} H ${left + curve} Q ${left} ${bottom} ${left} ${bottom - curve} V ${top + curve} Q ${left} ${top} ${left + curve} ${top} Z`;
+    }
+    if (template === 'flag') {
+        const cut = Math.min(height * 0.28, width * 0.08);
+        const point = Math.min(height * 0.45, width * 0.08);
+        return `M ${left} ${top} H ${right} L ${right - point} ${middle} L ${right} ${bottom} H ${left} V ${middle + cut} L ${left + cut} ${middle} L ${left} ${middle - cut} Z`;
+    }
+    return roundedRectPath(left, top, right, bottom, height * 0.16);
+}
+
+function getMainBannerPath(leftX, rightX, inset) {
+    if (activeElementTemplate === 'classic') {
+        if (inset) {
+            const innerLeft = leftX + 5;
+            const innerRight = rightX - 6;
+            return `M ${innerLeft} 161 L ${innerRight} 161 C ${innerRight + 14} 161 ${innerRight + 21} 171 ${innerRight + 14} 184 L ${innerRight - 44} 267 C ${innerRight - 50} 276 ${innerRight - 60} 281 ${innerRight - 72} 281 L ${innerLeft - 71} 281 L ${innerLeft - 12} 173 C ${innerLeft - 8} 165 ${innerLeft - 4} 161 ${innerLeft} 161 Z`;
+        }
+        return `M ${leftX} 154 L ${rightX} 154 C ${rightX + 18} 154 ${rightX + 27} 168 ${rightX + 17} 184 L ${rightX - 43} 271 C ${rightX - 51} 282 ${rightX - 63} 288 ${rightX - 77} 288 L ${leftX - 79} 288 L ${leftX - 14} 168 C ${leftX - 9} 159 ${leftX - 5} 154 ${leftX} 154 Z`;
+    }
+
+    return getElementShapePath(
+        activeElementTemplate,
+        leftX + (inset ? 6 : 0),
+        inset ? 161 : 154,
+        rightX - (inset ? 6 : 0),
+        inset ? 281 : 288
+    );
+}
+
+function getSubBannerPath(subLeft, subRight, inset) {
+    if (activeElementTemplate === 'classic') {
+        if (inset) {
+            return `M ${subLeft + 46} 273 L ${subRight + 23} 273 C ${subRight + 31} 273 ${subRight + 35} 280 ${subRight + 30} 287 L ${subRight - 11} 325 C ${subRight - 16} 330 ${subRight - 23} 333 ${subRight - 31} 333 L ${subLeft - 32} 333 C ${subLeft - 41} 333 ${subLeft - 45} 326 ${subLeft - 40} 319 L ${subLeft - 10} 281 C ${subLeft - 6} 276 ${subLeft - 1} 273 ${subLeft + 46} 273 Z`;
+        }
+        return `M ${subLeft + 42} 270 L ${subRight + 28} 270 C ${subRight + 38} 270 ${subRight + 43} 279 ${subRight + 36} 288 L ${subRight - 7} 329 C ${subRight - 13} 335 ${subRight - 22} 338 ${subRight - 32} 338 L ${subLeft - 39} 338 C ${subLeft - 51} 338 ${subLeft - 56} 329 ${subLeft - 49} 320 L ${subLeft - 16} 279 C ${subLeft - 11} 273 ${subLeft - 6} 270 ${subLeft + 42} 270 Z`;
+    }
+
+    return getElementShapePath(
+        activeElementTemplate,
+        subLeft - (inset ? 14 : 20),
+        inset ? 273 : 270,
+        subRight + (inset ? 18 : 24),
+        inset ? 333 : 338
+    );
+}
+
 function appendTemplatePreviewNode(svg, tagName, attributes, textContent) {
     const element = document.createElementNS('http://www.w3.org/2000/svg', tagName);
     Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
@@ -626,13 +1051,27 @@ function appendTemplatePreviewNode(svg, tagName, attributes, textContent) {
     svg.appendChild(element);
 }
 
-function createTemplatePreview(colors) {
+function getPreviewBannerPaths(template) {
+    if (template !== 'classic') {
+        return {
+            main: getElementShapePath(template, 18, 12, 202, 47),
+            sub: getElementShapePath(template, 31, 49, 188, 73)
+        };
+    }
+    return {
+        main: 'M 34 12 H 198 L 178 47 H 17 Z',
+        sub: 'M 48 48 H 182 L 167 73 H 31 Z'
+    };
+}
+
+function createTemplatePreview(colors, elementTemplate) {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('viewBox', '0 0 220 84');
     svg.setAttribute('aria-hidden', 'true');
+    const paths = getPreviewBannerPaths(elementTemplate || 'classic');
     appendTemplatePreviewNode(svg, 'rect', { x: 0, y: 0, width: 220, height: 84, rx: 9, fill: '#111827' });
     appendTemplatePreviewNode(svg, 'path', {
-        d: 'M 34 12 H 198 L 178 47 H 17 Z',
+        d: paths.main,
         fill: colors.mainFill,
         stroke: colors.mainOuter,
         'stroke-width': 3
@@ -654,7 +1093,7 @@ function createTemplatePreview(colors) {
         'font-weight': 800
     }, 'NAMA ANDA');
     appendTemplatePreviewNode(svg, 'path', {
-        d: 'M 48 48 H 182 L 167 73 H 31 Z',
+        d: paths.sub,
         fill: colors.subFill,
         stroke: colors.subFrame,
         'stroke-width': 2
@@ -670,6 +1109,57 @@ function createTemplatePreview(colors) {
         'font-weight': 700
     }, 'JABATAN');
     return svg;
+}
+
+function renderElementTemplateGallery(selectedTemplate) {
+    const gallery = document.getElementById('elementTemplateGallery');
+    if (!gallery) return;
+
+    if (gallery.dataset.initialized !== 'true') {
+        Object.entries(ELEMENT_TEMPLATE_LABELS).forEach(([template, label]) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'template-card';
+            button.dataset.elementTemplate = template;
+            button.setAttribute('aria-pressed', 'false');
+            button.setAttribute('aria-label', `Pilih bentuk ${label}`);
+            button.title = label;
+            button.appendChild(createTemplatePreview(ELEMENT_TEMPLATE_PREVIEW_COLORS, template));
+
+            const cardLabel = document.createElement('span');
+            cardLabel.className = 'template-card-label';
+            cardLabel.textContent = label;
+            button.appendChild(cardLabel);
+            button.addEventListener('click', () => setElementTemplate(template));
+            gallery.appendChild(button);
+        });
+        gallery.dataset.initialized = 'true';
+    }
+
+    gallery.querySelectorAll('.template-card').forEach(button => {
+        const isSelected = button.dataset.elementTemplate === selectedTemplate;
+        button.classList.toggle('is-selected', isSelected);
+        button.setAttribute('aria-pressed', String(isSelected));
+    });
+    const count = document.getElementById('elementTemplateCount');
+    if (count) count.textContent = `${Object.keys(ELEMENT_TEMPLATE_LABELS).length} bentuk`;
+}
+
+function setElementTemplate(template) {
+    activeElementTemplate = Object.prototype.hasOwnProperty.call(ELEMENT_TEMPLATE_LABELS, template)
+        ? template
+        : 'classic';
+    decorationPosition = null;
+    manualDecorationPosition = false;
+    const svg = document.getElementById('lowerThirdSvg');
+    svg?.setAttribute('data-element-template', activeElementTemplate);
+    const hideSideAccents = activeElementTemplate !== 'classic';
+    const leftAccents = document.getElementById('left-accents');
+    const subAccents = document.getElementById('sub-accents');
+    if (leftAccents) leftAccents.setAttribute('display', hideSideAccents ? 'none' : 'inline');
+    if (subAccents) subAccents.setAttribute('display', hideSideAccents ? 'none' : 'inline');
+    updateBannerLayout();
+    renderElementTemplateGallery(activeElementTemplate);
 }
 
 function renderTemplateGallery(templates, selectedTemplate) {
@@ -703,6 +1193,8 @@ function renderTemplateGallery(templates, selectedTemplate) {
         button.classList.toggle('is-selected', isSelected);
         button.setAttribute('aria-pressed', String(isSelected));
     });
+    const count = document.getElementById('templateCount');
+    if (count) count.textContent = `${Object.keys(TEMPLATE_LABELS).length} palet`;
 }
 
 function setNameTemplate(template) {
@@ -868,6 +1360,9 @@ function setNameTemplate(template) {
 function applyDesignColor(element, color) {
     const setFill = id => document.getElementById(id)?.setAttribute('fill', color);
     const setStroke = id => document.getElementById(id)?.setAttribute('stroke', color);
+    const templateAccents = document.getElementById('elementTemplateAccents');
+    if (element === 'mainNeonOne') templateAccents?.style.setProperty('--template-accent-primary', color);
+    if (element === 'mainNeonTwo') templateAccents?.style.setProperty('--template-accent-secondary', color);
     const fillTargets = {
         mainFill: ['mainInnerPath'],
         mainOuter: ['mainOuterPath'],
@@ -898,7 +1393,10 @@ function applyDesignColor(element, color) {
     if (element === 'icon') {
         const icon = document.getElementById('computerIconArea');
         icon?.setAttribute('stroke', color);
-        ['subGearCenter', 'icon-desktop-led', 'icon-tablet-button', 'icon-server-led-one', 'icon-server-led-two'].forEach(id => {
+        [
+            'subGearCenter', 'icon-desktop-led', 'icon-tablet-button', 'icon-server-led-one', 'icon-server-led-two',
+            'ornament-flower-center', 'ornament-crown-dot-left', 'ornament-crown-dot-center', 'ornament-crown-dot-right'
+        ].forEach(id => {
             document.getElementById(id)?.setAttribute('fill', color);
         });
         return;
@@ -985,6 +1483,429 @@ function setBg(mode) {
     }
 }
 
+const CUSTOM_ELEMENT_SHAPES = {
+    rect: 'Persegi panjang',
+    roundedRect: 'Persegi sudut bulat',
+    circle: 'Lingkaran',
+    oval: 'Oval',
+    triangle: 'Segitiga',
+    trapezoid: 'Trapesium',
+    pentagon: 'Pentagon',
+    hexagon: 'Hexagon',
+    polygon: 'Poligon',
+    line: 'Garis lurus',
+    curve: 'Garis lengkung',
+    abstract: 'Abstrak',
+    geometric: 'Geometris'
+};
+
+function getSelectedCustomElement() {
+    return customCanvasElements.find(element => element.id === selectedCustomElementId) || null;
+}
+
+function createCustomElement(shape, index) {
+    const sequence = ++customElementSequence;
+    return {
+        id: `custom-element-${sequence}`,
+        name: `${CUSTOM_ELEMENT_SHAPES[shape]} ${sequence}`,
+        shape,
+        x: 180 + ((index * 27) % 900),
+        y: 145 + ((index * 23) % 220),
+        width: shape === 'line' || shape === 'curve' ? 180 : shape === 'circle' ? 120 : 160,
+        height: shape === 'line' || shape === 'curve' ? 80 : shape === 'circle' ? 120 : 100,
+        rotation: 0,
+        sides: 6,
+        fillMode: shape === 'line' || shape === 'curve' ? 'solid' : 'gradient',
+        fillColor: '#0ea5e9',
+        gradientColor: '#1e3a8a',
+        strokeColor: '#e0f2fe',
+        borderWidth: 3,
+        radius: 12,
+        opacity: 1,
+        shadow: false,
+        glow: false,
+        locked: false
+    };
+}
+
+function createCustomShape(element) {
+    const svgNamespace = 'http://www.w3.org/2000/svg';
+    const tags = {
+        rect: 'rect', roundedRect: 'rect', circle: 'ellipse', oval: 'ellipse',
+        triangle: 'polygon', trapezoid: 'polygon', pentagon: 'polygon', hexagon: 'polygon',
+        polygon: 'polygon', line: 'line', curve: 'path', abstract: 'path', geometric: 'path'
+    };
+    const node = document.createElementNS(svgNamespace, tags[element.shape] || 'rect');
+    const width = element.width;
+    const height = element.height;
+
+    if (element.shape === 'rect' || element.shape === 'roundedRect') {
+        node.setAttribute('x', '0');
+        node.setAttribute('y', '0');
+        node.setAttribute('width', String(width));
+        node.setAttribute('height', String(height));
+        node.setAttribute('rx', String(element.radius));
+        node.setAttribute('ry', String(element.radius));
+    } else if (element.shape === 'circle' || element.shape === 'oval') {
+        node.setAttribute('cx', String(width / 2));
+        node.setAttribute('cy', String(height / 2));
+        node.setAttribute('rx', String(element.shape === 'circle' ? Math.min(width, height) / 2 : width / 2));
+        node.setAttribute('ry', String(element.shape === 'circle' ? Math.min(width, height) / 2 : height / 2));
+    } else if (['triangle', 'trapezoid', 'pentagon', 'hexagon', 'polygon'].includes(element.shape)) {
+        let points;
+        if (element.shape === 'triangle') {
+            points = [[width / 2, 0], [width, height], [0, height]];
+        } else if (element.shape === 'trapezoid') {
+            points = [[width * 0.22, 0], [width * 0.78, 0], [width, height], [0, height]];
+        } else {
+            const sides = element.shape === 'pentagon' ? 5 : element.shape === 'hexagon' ? 6 : element.sides;
+            points = Array.from({ length: sides }, (_, side) => {
+                const angle = -Math.PI / 2 + (Math.PI * 2 * side / sides);
+                return [width / 2 + Math.cos(angle) * width * 0.48, height / 2 + Math.sin(angle) * height * 0.48];
+            });
+        }
+        node.setAttribute('points', points.map(point => point.map(value => value.toFixed(2)).join(',')).join(' '));
+    } else if (element.shape === 'line') {
+        node.setAttribute('x1', '0');
+        node.setAttribute('y1', String(height / 2));
+        node.setAttribute('x2', String(width));
+        node.setAttribute('y2', String(height / 2));
+    } else if (element.shape === 'curve') {
+        node.setAttribute('d', `M 0 ${height * 0.75} C ${width * 0.25} 0 ${width * 0.75} ${height} ${width} ${height * 0.25}`);
+    } else if (element.shape === 'abstract') {
+        node.setAttribute('d', `M 0 ${height * 0.55} C ${width * 0.12} ${height * 0.05} ${width * 0.48} ${height * 0.15} ${width * 0.46} ${height * 0.48} C ${width * 0.44} ${height * 0.8} ${width * 0.82} ${height * 0.12} ${width} ${height * 0.55} C ${width * 0.84} ${height * 1.08} ${width * 0.2} ${height * 1.08} 0 ${height * 0.55} Z`);
+    } else if (element.shape === 'geometric') {
+        node.setAttribute('d', `M ${width / 2} 0 L ${width} ${height * 0.4} L ${width * 0.72} ${height} L ${width * 0.28} ${height} L 0 ${height * 0.4} Z M ${width / 2} ${height * 0.2} L ${width * 0.72} ${height * 0.45} L ${width / 2} ${height * 0.7} L ${width * 0.28} ${height * 0.45} Z`);
+        node.setAttribute('fill-rule', 'evenodd');
+    }
+
+    if (element.shape === 'line' || element.shape === 'curve') {
+        node.setAttribute('fill', 'none');
+    } else if (element.fillMode === 'gradient') {
+        const gradientId = `${element.id}-gradient`;
+        let gradient = document.getElementById(gradientId);
+        if (!gradient) {
+            gradient = document.createElementNS(svgNamespace, 'linearGradient');
+            gradient.setAttribute('id', gradientId);
+            document.querySelector('#lowerThirdSvg defs').appendChild(gradient);
+        }
+        gradient.replaceChildren();
+        gradient.setAttribute('x1', '0');
+        gradient.setAttribute('y1', '0');
+        gradient.setAttribute('x2', String(width));
+        gradient.setAttribute('y2', String(height));
+        [[element.fillColor, '0%'], [element.gradientColor, '100%']].forEach(([color, offset]) => {
+            const stop = document.createElementNS(svgNamespace, 'stop');
+            stop.setAttribute('offset', offset);
+            stop.setAttribute('stop-color', color);
+            gradient.appendChild(stop);
+        });
+        node.setAttribute('fill', `url(#${gradientId})`);
+    } else {
+        node.setAttribute('fill', element.fillColor);
+    }
+    node.setAttribute('stroke', element.strokeColor);
+    node.setAttribute('stroke-width', String(element.borderWidth));
+    node.setAttribute('stroke-linejoin', 'round');
+    node.setAttribute('stroke-linecap', 'round');
+    node.setAttribute('opacity', String(element.opacity));
+    if (element.shadow || element.glow) {
+        const effects = [];
+        if (element.shadow) effects.push('drop-shadow(0 4px 5px rgba(2, 6, 23, 0.55))');
+        if (element.glow) effects.push(`drop-shadow(0 0 8px ${colorToRgba(element.fillColor, 0.85)})`);
+        node.style.filter = effects.join(' ');
+    }
+    return node;
+}
+
+function renderCustomShapePicker() {
+    const picker = document.getElementById('customShapePicker');
+    const select = document.getElementById('customElementShape');
+    if (!picker || !select) return;
+    picker.replaceChildren();
+
+    Object.entries(CUSTOM_ELEMENT_SHAPES).forEach(([shape, label]) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'custom-shape-card';
+        button.dataset.shape = shape;
+        button.setAttribute('aria-label', `Pilih bentuk ${label}`);
+        button.setAttribute('aria-pressed', String(select.value === shape));
+        button.classList.toggle('is-selected', select.value === shape);
+
+        const preview = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        preview.setAttribute('viewBox', '0 0 160 100');
+        preview.setAttribute('aria-hidden', 'true');
+        preview.classList.add('custom-shape-icon');
+        preview.appendChild(createCustomShape({
+            id: `shape-preview-${shape}`, shape, width: 160, height: 100, rotation: 0,
+            sides: 6, fillMode: 'solid', fillColor: '#1686b8', gradientColor: '#123b73',
+            strokeColor: '#a5f3fc', borderWidth: 3, radius: 12, opacity: 1,
+            shadow: false, glow: false
+        }));
+        const caption = document.createElement('span');
+        caption.textContent = label;
+        button.append(preview, caption);
+        button.addEventListener('click', () => {
+            select.value = shape;
+            renderCustomShapePicker();
+        });
+        picker.appendChild(button);
+    });
+}
+
+function renderCustomElement(element) {
+    const svgNamespace = 'http://www.w3.org/2000/svg';
+    const group = document.createElementNS(svgNamespace, 'g');
+    group.dataset.customElement = element.id;
+    group.setAttribute('transform', `translate(${element.x} ${element.y}) rotate(${element.rotation} ${element.width / 2} ${element.height / 2})`);
+    group.setAttribute('role', 'button');
+    group.setAttribute('tabindex', '0');
+    group.setAttribute('aria-label', `${element.name || CUSTOM_ELEMENT_SHAPES[element.shape]}${element.locked ? ', posisi terkunci' : ''}`);
+    group.setAttribute('aria-pressed', String(element.id === selectedCustomElementId));
+    group.classList.toggle('is-locked', element.locked);
+    group.appendChild(createCustomShape(element));
+
+    if (element.id === selectedCustomElementId) {
+        const outline = document.createElementNS(svgNamespace, 'rect');
+        outline.dataset.selectionOutline = 'true';
+        outline.setAttribute('x', '-5');
+        outline.setAttribute('y', '-5');
+        outline.setAttribute('width', String(element.width + 10));
+        outline.setAttribute('height', String(element.height + 10));
+        outline.setAttribute('rx', '3');
+        outline.setAttribute('fill', 'none');
+        outline.setAttribute('stroke', '#67e8f9');
+        outline.setAttribute('stroke-width', '2');
+        outline.setAttribute('stroke-dasharray', '6 4');
+        group.appendChild(outline);
+    }
+    return group;
+}
+
+function renderCustomElements() {
+    const layer = document.getElementById('customElementsLayer');
+    const list = document.getElementById('customElementList');
+    if (!layer || !list) return;
+
+    layer.replaceChildren(...customCanvasElements.map(renderCustomElement));
+    list.replaceChildren();
+    if (!customCanvasElements.length) {
+        const message = document.createElement('p');
+        message.id = 'customElementEmpty';
+        message.className = 'custom-element-empty';
+        message.textContent = 'Belum ada elemen. Pilih bentuk lalu tekan Tambah.';
+        list.appendChild(message);
+    } else {
+        customCanvasElements.forEach((element, index) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `custom-element-row${element.id === selectedCustomElementId ? ' is-selected' : ''}`;
+            button.setAttribute('aria-pressed', String(element.id === selectedCustomElementId));
+            button.addEventListener('click', () => selectCustomElement(element.id));
+            const label = document.createElement('span');
+            label.textContent = `${index + 1}. ${element.name || CUSTOM_ELEMENT_SHAPES[element.shape]}`;
+            const layerNumber = document.createElement('small');
+            layerNumber.textContent = element.locked ? 'Terkunci' : `L${index + 1}`;
+            button.append(label, layerNumber);
+            list.appendChild(button);
+        });
+    }
+    const count = document.getElementById('customLayerCount');
+    if (count) count.textContent = `${customCanvasElements.length} elemen`;
+    syncCustomElementInspector();
+}
+
+function syncCustomElementInspector() {
+    const inspector = document.getElementById('customElementInspector');
+    const element = getSelectedCustomElement();
+    if (!inspector) return;
+    inspector.hidden = !element;
+    if (!element) return;
+
+    const values = {
+        customElementName: element.name,
+        customElementX: element.x,
+        customElementY: element.y,
+        customElementWidth: element.width,
+        customElementHeight: element.height,
+        customElementRotation: element.rotation,
+        customElementSides: element.sides,
+        customElementFillMode: element.fillMode,
+        customElementFillColor: element.fillColor,
+        customElementGradientColor: element.gradientColor,
+        customElementStrokeColor: element.strokeColor,
+        customElementBorderWidth: element.borderWidth,
+        customElementRadius: element.radius,
+        customElementOpacity: element.opacity
+    };
+    Object.entries(values).forEach(([id, value]) => {
+        const input = document.getElementById(id);
+        if (input) input.value = String(value);
+    });
+    ['shadow', 'glow', 'locked'].forEach(property => {
+        const input = document.getElementById(`customElement${property[0].toUpperCase()}${property.slice(1)}`);
+        if (input) input.checked = element[property];
+    });
+    document.getElementById('customElementSelectionLabel').textContent =
+        `${CUSTOM_ELEMENT_SHAPES[element.shape]} · Layer ${customCanvasElements.indexOf(element) + 1}`;
+    document.getElementById('customPolygonSidesField').hidden = element.shape !== 'polygon';
+    document.getElementById('customElementRadiusField').hidden =
+        element.shape !== 'rect' && element.shape !== 'roundedRect';
+    document.getElementById('customGradientColorField').hidden =
+        element.fillMode !== 'gradient' || element.shape === 'line' || element.shape === 'curve';
+}
+
+function selectCustomElement(id) {
+    if (!customCanvasElements.some(element => element.id === id)) return;
+    selectedCustomElementId = id;
+    renderCustomElements();
+}
+
+function finalizeSelectedCustomElementName() {
+    const element = getSelectedCustomElement();
+    if (element && !element.name.trim()) {
+        updateSelectedCustomElement('name', CUSTOM_ELEMENT_SHAPES[element.shape]);
+    }
+}
+
+function addCustomElement() {
+    const shapeInput = document.getElementById('customElementShape');
+    const countInput = document.getElementById('customElementCount');
+    if (!shapeInput || !CUSTOM_ELEMENT_SHAPES[shapeInput.value]) {
+        showToast('Pilih bentuk elemen yang valid.');
+        return;
+    }
+    const requestedCount = Number(countInput && countInput.value);
+    const count = Number.isFinite(requestedCount) ? Math.max(1, Math.min(20, Math.floor(requestedCount))) : 1;
+    if (customCanvasElements.length + count > 100) {
+        showToast('Maksimal 100 elemen kustom dapat ditambahkan.');
+        return;
+    }
+    for (let index = 0; index < count; index += 1) {
+        const element = createCustomElement(shapeInput.value, customCanvasElements.length);
+        customCanvasElements.push(element);
+        selectedCustomElementId = element.id;
+    }
+    renderCustomElements();
+    const builder = document.getElementById('customElementBuilder');
+    if (builder) builder.open = true;
+    showToast(`${count} elemen ${CUSTOM_ELEMENT_SHAPES[shapeInput.value].toLowerCase()} ditambahkan ke pratinjau.`);
+}
+
+function updateSelectedCustomElement(property, value) {
+    const element = getSelectedCustomElement();
+    if (!element) return;
+    const numericProperties = {
+        x: [0, 1280], y: [0, 460], width: [8, 1280], height: [8, 460],
+        rotation: [-360, 360], sides: [3, 12], borderWidth: [0, 20],
+        radius: [0, 200], opacity: [0, 1]
+    };
+    if (property === 'name') {
+        element.name = String(value).slice(0, 32);
+    } else if (Object.prototype.hasOwnProperty.call(numericProperties, property)) {
+        if (element.locked && (property === 'x' || property === 'y')) {
+            syncCustomElementInspector();
+            return;
+        }
+        const number = Number(value);
+        if (!Number.isFinite(number)) return;
+        const [minimum, maximum] = numericProperties[property];
+        element[property] = Math.max(minimum, Math.min(maximum, number));
+    } else if (['fillMode', 'fillColor', 'gradientColor', 'strokeColor', 'shadow', 'glow', 'locked'].includes(property)) {
+        element[property] = value;
+    } else {
+        return;
+    }
+    renderCustomElements();
+}
+
+function duplicateSelectedCustomElement() {
+    const selected = getSelectedCustomElement();
+    if (!selected) return;
+    if (customCanvasElements.length >= 100) {
+        showToast('Maksimal 100 elemen kustom dapat dibuat.');
+        return;
+    }
+    const duplicate = {
+        ...selected,
+        id: `custom-element-${++customElementSequence}`,
+        name: `${selected.name} salinan`,
+        x: Math.min(1280, selected.x + 24),
+        y: Math.min(460, selected.y + 24)
+    };
+    customCanvasElements.splice(customCanvasElements.indexOf(selected) + 1, 0, duplicate);
+    selectedCustomElementId = duplicate.id;
+    renderCustomElements();
+}
+
+function deleteSelectedCustomElement() {
+    const index = customCanvasElements.findIndex(element => element.id === selectedCustomElementId);
+    if (index < 0) return;
+    document.getElementById(`${selectedCustomElementId}-gradient`)?.remove();
+    customCanvasElements.splice(index, 1);
+    selectedCustomElementId = customCanvasElements[Math.min(index, customCanvasElements.length - 1)]?.id || null;
+    renderCustomElements();
+}
+
+function moveSelectedCustomElementLayer(direction) {
+    const index = customCanvasElements.findIndex(element => element.id === selectedCustomElementId);
+    const nextIndex = index + direction;
+    if (index < 0 || nextIndex < 0 || nextIndex >= customCanvasElements.length) return;
+    [customCanvasElements[index], customCanvasElements[nextIndex]] = [customCanvasElements[nextIndex], customCanvasElements[index]];
+    renderCustomElements();
+}
+
+function initializeCustomElementDragging() {
+    const svg = document.getElementById('lowerThirdSvg');
+    const layer = document.getElementById('customElementsLayer');
+    if (!svg || !layer || svg.dataset.customElementsInitialized === 'true') return;
+    svg.dataset.customElementsInitialized = 'true';
+
+    svg.addEventListener('pointerdown', event => {
+        const target = event.target.closest && event.target.closest('[data-custom-element]');
+        if (!target || !layer.contains(target) || event.button !== 0) return;
+        const element = customCanvasElements.find(item => item.id === target.dataset.customElement);
+        if (!element) return;
+        selectCustomElement(element.id);
+        if (element.locked) return;
+        const point = getSvgPointFromPointer(event, svg);
+        if (!point) return;
+        customElementDrag = { id: element.id, offsetX: point.x - element.x, offsetY: point.y - element.y };
+        svg.setPointerCapture(event.pointerId);
+        event.preventDefault();
+    });
+
+    svg.addEventListener('pointermove', event => {
+        if (!customElementDrag || !svg.hasPointerCapture(event.pointerId)) return;
+        const element = customCanvasElements.find(item => item.id === customElementDrag.id);
+        const point = getSvgPointFromPointer(event, svg);
+        if (!element || !point) return;
+        element.x = Math.round(Math.max(0, Math.min(1280 - element.width, point.x - customElementDrag.offsetX)));
+        element.y = Math.round(Math.max(0, Math.min(460 - element.height, point.y - customElementDrag.offsetY)));
+        const group = layer.querySelector(`[data-custom-element="${element.id}"]`);
+        if (group) group.setAttribute('transform', `translate(${element.x} ${element.y}) rotate(${element.rotation} ${element.width / 2} ${element.height / 2})`);
+        const xInput = document.getElementById('customElementX');
+        const yInput = document.getElementById('customElementY');
+        if (xInput) xInput.value = String(element.x);
+        if (yInput) yInput.value = String(element.y);
+    });
+
+    const finishDragging = event => {
+        if (!customElementDrag) return;
+        customElementDrag = null;
+        if (svg.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
+    };
+    svg.addEventListener('pointerup', finishDragging);
+    svg.addEventListener('pointercancel', finishDragging);
+    svg.addEventListener('keydown', event => {
+        const target = event.target.closest && event.target.closest('[data-custom-element]');
+        if (!target || (event.key !== 'Enter' && event.key !== ' ')) return;
+        event.preventDefault();
+        selectCustomElement(target.dataset.customElement);
+    });
+}
+
 function updateSpeed(val) {
     const num = parseFloat(val) || 3.5;
     document.documentElement.style.setProperty('--speed', `${num}s`);
@@ -1022,6 +1943,7 @@ function applyProfessionalDefaults(showNotification) {
 
     document.getElementById('computerModel').value = PROFESSIONAL_DEFAULTS.computerModel;
     setComputerModel(PROFESSIONAL_DEFAULTS.computerModel);
+    setElementTemplate(PROFESSIONAL_DEFAULTS.elementTemplate);
     setNameTemplate(PROFESSIONAL_DEFAULTS.template);
     setBg(PROFESSIONAL_DEFAULTS.background);
 
@@ -1032,32 +1954,81 @@ function applyProfessionalDefaults(showNotification) {
     if (animationsPaused) toggleAnimationPlayback();
 
     document.querySelectorAll('.editor-accordion').forEach(accordion => {
-        accordion.open = false;
+        accordion.open = accordion.id === 'customElementBuilder';
     });
     const gallery = document.getElementById('templateGallery');
     if (gallery) gallery.scrollTop = 0;
     const sidebar = document.getElementById('controlBar');
     if (sidebar) sidebar.scrollTop = 0;
+    const rightSidebar = document.getElementById('rightControlBar');
+    if (rightSidebar) rightSidebar.scrollTop = 0;
 
     if (showNotification !== false) showToast('Semua fitur dikembalikan ke preset profesional.');
 }
 
 function toggleControls(e) {
     if (e) e.stopPropagation();
-    const bar = document.getElementById('controlBar');
-    if (!bar) return;
-    bar.classList.add('panel-hidden');
-    document.body.classList.add('editor-hidden');
-    showToast('Panel editor disembunyikan. Klik area pratinjau untuk menampilkannya kembali.');
+    setEditorDock('left', false);
+    document.getElementById('showControlBarBtn')?.focus();
+    showToast('Panel desain ditutup. Gunakan tab Desain di sisi kiri untuk membukanya kembali.');
 }
 
-document.addEventListener('click', (e) => {
-    const bar = document.getElementById('controlBar');
-    if (bar && bar.classList.contains('panel-hidden') && !bar.contains(e.target)) {
-        bar.classList.remove('panel-hidden');
-        document.body.classList.remove('editor-hidden');
+function setEditorDock(side, isOpen) {
+    const isLeft = side === 'left';
+    const panel = document.getElementById(isLeft ? 'controlBar' : 'rightControlBar');
+    const toggle = document.getElementById(isLeft ? 'showControlBarBtn' : 'showElementBarBtn');
+    if (!panel) return;
+
+    panel.classList.toggle('panel-hidden', !isOpen);
+    panel.inert = !isOpen;
+    document.body.classList.toggle(isLeft ? 'left-dock-hidden' : 'right-dock-hidden', !isOpen);
+    if (toggle) {
+        toggle.hidden = isOpen;
+        toggle.setAttribute('aria-expanded', String(isOpen));
     }
-});
+}
+
+function initializeEditorPanels() {
+    const rightContent = document.getElementById('rightDockContent');
+    ['exportActions', 'editorSettingsActions'].forEach(id => {
+        const section = document.getElementById(id);
+        if (rightContent && section) rightContent.appendChild(section);
+    });
+    setEditorDock('left', true);
+    setEditorDock('right', false);
+}
+
+function openEditor() {
+    const welcome = document.getElementById('welcomeScreen');
+    if (welcome) welcome.hidden = true;
+    document.body.classList.remove('editor-not-started');
+
+    const compactLayout = window.matchMedia('(max-width: 1040px)').matches;
+    setEditorDock('left', true);
+    setEditorDock('right', !compactLayout);
+    requestAnimationFrame(() => updateBannerLayout());
+}
+
+function showControls() {
+    if (window.matchMedia('(max-width: 900px)').matches) setEditorDock('right', false);
+    setEditorDock('left', true);
+    document.querySelector('#controlBar .dock-close-button')?.focus();
+}
+
+function toggleElementPanel() {
+    const panel = document.getElementById('rightControlBar');
+    if (!panel) return;
+    const shouldOpen = panel.classList.contains('panel-hidden');
+    if (shouldOpen && window.matchMedia('(max-width: 900px)').matches) setEditorDock('left', false);
+    setEditorDock('right', shouldOpen);
+    if (shouldOpen) document.querySelector('#rightControlBar .dock-close-button')?.focus();
+}
+
+function showElementPanel() {
+    if (window.matchMedia('(max-width: 900px)').matches) setEditorDock('left', false);
+    setEditorDock('right', true);
+    document.querySelector('#rightControlBar .dock-close-button')?.focus();
+}
 
 async function recordVideo() {
     const btn = document.getElementById('recordBtn');
@@ -1256,7 +2227,7 @@ async function recordVideo() {
             svgElement,
             canvas.width,
             canvas.height,
-            await getMontserratExportFontCss()
+            await getExportFontCss()
         );
 
         const recordDurationMs = 10000;
@@ -1401,7 +2372,7 @@ async function recordGif() {
             svgElement,
             width,
             height,
-            await getMontserratExportFontCss()
+            await getExportFontCss()
         );
         const image = new Image();
         image.decoding = 'async';
@@ -1569,7 +2540,7 @@ async function exportPng() {
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
-        const fontCss = await getMontserratExportFontCss();
+        const fontCss = await getExportFontCss();
         if (document.fonts?.ready) await document.fonts.ready;
         animationTimeline = createAnimationTimeline();
         const buildFrameSvgString = createExportSvgFrameBuilder(svgElement, width, height, fontCss);
@@ -1632,9 +2603,23 @@ async function exportPng() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initializeEditorPanels();
     populateFontSelectors();
+    initializeDecorationDragging();
+    initializeCustomElementDragging();
+    renderCustomShapePicker();
+    renderCustomElements();
     applyProfessionalDefaults(false);
     if (document.fonts?.ready) {
         document.fonts.ready.then(() => updateBannerLayout());
+    }
+});
+
+window.addEventListener('resize', () => {
+    const leftPanel = document.getElementById('controlBar');
+    const rightPanel = document.getElementById('rightControlBar');
+    if (!window.matchMedia('(max-width: 900px)').matches || !leftPanel || !rightPanel) return;
+    if (!leftPanel.classList.contains('panel-hidden') && !rightPanel.classList.contains('panel-hidden')) {
+        setEditorDock('right', false);
     }
 });

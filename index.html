@@ -10,12 +10,96 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:ital,wght@0,700;0,800;1,700;1,800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-checkerboard min-h-screen relative">
+<body class="bg-checkerboard min-h-screen relative editor-not-started">
 
     <!-- Notifikasi Toast -->
     <div id="toastBox" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white text-xs sm:text-sm font-medium px-5 py-3 rounded-xl shadow-2xl border border-cyan-400/40 backdrop-blur-md transition-all duration-300 opacity-0 pointer-events-none">
         Pesan notifikasi
     </div>
+    <section id="welcomeScreen" class="welcome-screen" aria-labelledby="welcomeTitle">
+        <div class="welcome-topbar">
+            <a class="welcome-brand" href="#" aria-label="Ndowe Studio">
+                <span class="welcome-brand-mark">N</span>
+                <span>NDOWE <strong>STUDIO</strong></span>
+            </a>
+            <span class="welcome-version">LOWER THIRD DESIGN WORKSPACE</span>
+        </div>
+        <div class="welcome-content">
+            <div class="welcome-copy">
+                <span class="welcome-eyebrow"><span></span> STUDIO DESAIN SIARAN</span>
+                <h1 id="welcomeTitle">Buat tampilan yang<br><em>terlihat profesional.</em></h1>
+                <p>Rancang lower third dengan kontrol desain lengkap, elemen kustom, dan pratinjau langsung dalam satu ruang kerja.</p>
+                <button class="welcome-open-button" type="button" onclick="openEditor()">
+                    <span>Buka Editor</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                </button>
+                <div class="welcome-note"><span>●</span> Perubahan terlihat langsung di pratinjau</div>
+            </div>
+            <div class="welcome-visual">
+                <div class="welcome-visual-glow"></div>
+                <div class="welcome-window">
+                    <div class="welcome-window-bar">
+                        <span class="welcome-window-dots"><i></i><i></i><i></i></span>
+                        <span>PREVIEW CANVAS</span>
+                        <span class="welcome-window-live"><i></i> LIVE</span>
+                    </div>
+                    <svg class="welcome-lower-third" viewBox="0 0 720 240" role="img" aria-label="Ilustrasi lower third biru dengan bingkai cahaya">
+                        <defs>
+                            <linearGradient id="welcomeBlue" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0" stop-color="#155eaa" />
+                                <stop offset="1" stop-color="#07162f" />
+                            </linearGradient>
+                            <linearGradient id="welcomeGold" x1="0" y1="0" x2="1" y2="0">
+                                <stop offset="0" stop-color="#f8d477" />
+                                <stop offset="1" stop-color="#a9772d" />
+                            </linearGradient>
+                            <filter id="welcomeGlow" x="-30%" y="-50%" width="160%" height="200%">
+                                <feGaussianBlur stdDeviation="7" result="blur" />
+                                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                            </filter>
+                        </defs>
+                        <path d="M95 50h535l-37 73H58z" fill="url(#welcomeBlue)" stroke="url(#welcomeGold)" stroke-width="5" />
+                        <path d="M159 135h415l-25 46H134z" fill="#eff6ff" stroke="#1b5b95" stroke-width="5" />
+                        <path d="M96 50h535l-37 73H58z" fill="none" stroke="#38bdf8" stroke-width="2" filter="url(#welcomeGlow)" opacity=".8" />
+                        <text x="350" y="106" text-anchor="middle" fill="#fff" font-family="Montserrat, sans-serif" font-size="42" font-weight="800" font-style="italic">NAMA ANDA</text>
+                        <text x="370" y="165" text-anchor="middle" fill="#102a43" font-family="Montserrat, sans-serif" font-size="22" font-weight="800" font-style="italic">JABATAN</text>
+                        <path d="M78 52 43 122h-20l36-70zM101 52 65 122H49l35-70z" fill="url(#welcomeGold)" />
+                        <circle cx="616" cy="158" r="30" fill="#07162f" stroke="#38bdf8" stroke-width="3" />
+                        <path d="m604 158 8 8 16-18" fill="none" stroke="#d7f7ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <div class="welcome-window-footer"><span>1280 × 460</span><span>DESAIN ANDA, KONTROL PENUH</span></div>
+                </div>
+                <div class="welcome-feature-grid">
+                    <article class="welcome-feature">
+                        <span class="welcome-feature-icon welcome-feature-icon--blue">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM8 9h8M8 13h5" /></svg>
+                        </span>
+                        <span><strong>Desain visual</strong><small>Template & palet warna</small></span>
+                    </article>
+                    <article class="welcome-feature">
+                        <span class="welcome-feature-icon welcome-feature-icon--violet">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4z" /></svg>
+                        </span>
+                        <span><strong>Elemen kustom</strong><small>Bentuk, efek & layer</small></span>
+                    </article>
+                    <article class="welcome-feature">
+                        <span class="welcome-feature-icon welcome-feature-icon--gold">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3" /></svg>
+                        </span>
+                        <span><strong>Siap diekspor</strong><small>PNG, GIF & video</small></span>
+                    </article>
+                </div>
+            </div>
+        </div>
+        <footer class="welcome-footer"><span>NDOWE STUDIO</span><span>DESIGN WITH INTENTION</span></footer>
+    </section>
+
+    <button id="showControlBarBtn" class="dock-tab-button dock-tab-button--left" type="button" aria-controls="controlBar" aria-expanded="true" onclick="showControls()" hidden>
+        <span class="dock-tab-icon" aria-hidden="true">◧</span><span>Desain</span>
+    </button>
+    <button id="showElementBarBtn" class="dock-tab-button dock-tab-button--right" type="button" aria-controls="rightControlBar" aria-expanded="false" onclick="showElementPanel()" hidden>
+        <span class="dock-tab-icon" aria-hidden="true">◇</span><span>Elemen</span>
+    </button>
 
     <!-- Wadah Utama Grafis Lower Third -->
     <main class="preview-main px-3 sm:px-6 flex items-center justify-center">
@@ -124,6 +208,8 @@
                     <path id="mainOuterPath" d="M 239 154 L 1231 154 C 1249 154 1258 168 1248 184 L 1188 271 C 1180 282 1168 288 1154 288 L 160 288 L 225 168 C 230 159 234 154 239 154 Z" fill="url(#outerFrameBlue)" />
                     <path id="mainInnerPath" d="M 244 161 L 1225 161 C 1239 161 1246 171 1239 184 L 1181 267 C 1175 276 1165 281 1153 281 L 173 281 L 232 173 C 236 165 240 161 244 161 Z" fill="url(#mainBlueBg)" stroke="url(#whiteRimGrad)" stroke-width="4.5" />
 
+                    <g id="elementTemplateAccents" display="none" pointer-events="none" aria-hidden="true" clip-path="url(#mainInnerClip)" style="--template-accent-primary: #c5a15d; --template-accent-secondary: #e6c980"></g>
+
                     <g clip-path="url(#mainInnerClip)">
                         <ellipse id="mainHighlight" cx="280" cy="175" rx="190" ry="55" fill="#0ea5e9" opacity="0.28" />
                         <polygon id="shimmerMain" class="shimmer-sweep" points="-120,140 60,140 -20,300 -200,300" fill="url(#shimmerGrad)" />
@@ -199,13 +285,45 @@
                             <circle id="icon-server-led-one" cx="34" cy="40" r="1.5" fill="#00235b" stroke="none" />
                             <circle id="icon-server-led-two" cx="41" cy="40" r="1.5" fill="#00235b" stroke="none" />
                         </g>
+                        <g id="icon-flower" class="computer-icon" display="none" stroke-width="2.5">
+                            <ellipse cx="44" cy="11" rx="5.5" ry="8" transform="rotate(0 44 22)" />
+                            <ellipse cx="44" cy="11" rx="5.5" ry="8" transform="rotate(72 44 22)" />
+                            <ellipse cx="44" cy="11" rx="5.5" ry="8" transform="rotate(144 44 22)" />
+                            <ellipse cx="44" cy="11" rx="5.5" ry="8" transform="rotate(216 44 22)" />
+                            <ellipse cx="44" cy="11" rx="5.5" ry="8" transform="rotate(288 44 22)" />
+                            <circle id="ornament-flower-center" cx="44" cy="22" r="4" fill="#00235b" stroke="none" />
+                            <path d="M 44 27 V 45 M 44 36 C 35 28 31 34 44 39 M 44 40 C 53 32 57 37 44 43" stroke-width="2.4" />
+                        </g>
+                        <g id="icon-star" class="computer-icon" display="none" stroke-width="2.5">
+                            <path d="M 44 3 L 50 16 L 65 18 L 54 28 L 57 43 L 44 36 L 31 43 L 34 28 L 23 18 L 38 16 Z" />
+                            <path d="M 14 8 L 16 13 L 21 15 L 16 17 L 14 22 L 12 17 L 7 15 L 12 13 Z M 73 28 L 75 33 L 80 35 L 75 37 L 73 42 L 71 37 L 66 35 L 71 33 Z" stroke-width="1.8" />
+                        </g>
+                        <g id="icon-leaf" class="computer-icon" display="none" stroke-width="2.5">
+                            <path d="M 44 43 C 21 38 22 13 58 5 C 62 29 55 40 44 43 Z M 44 43 C 38 28 33 20 27 15 M 44 43 C 49 30 54 20 59 12" />
+                            <path d="M 42 38 C 31 36 27 32 24 27 M 47 33 C 49 26 53 21 57 18" stroke-width="1.8" />
+                        </g>
+                        <g id="icon-crown" class="computer-icon" display="none" stroke-width="2.7">
+                            <path d="M 20 37 L 15 13 L 31 25 L 44 7 L 57 25 L 73 13 L 68 37 Z" />
+                            <path d="M 23 42 H 65 M 21 37 H 67" stroke-width="3" />
+                            <circle id="ornament-crown-dot-left" cx="15" cy="12" r="3" fill="#00235b" stroke="none" />
+                            <circle id="ornament-crown-dot-center" cx="44" cy="6" r="3" fill="#00235b" stroke="none" />
+                            <circle id="ornament-crown-dot-right" cx="73" cy="12" r="3" fill="#00235b" stroke="none" />
+                        </g>
+                        <g id="icon-sparkle" class="computer-icon" display="none" stroke-width="2.5">
+                            <path d="M 44 3 C 46 16 50 20 64 22 C 50 24 46 28 44 42 C 42 28 38 24 24 22 C 38 20 42 16 44 3 Z" />
+                            <path d="M 72 8 C 73 14 75 16 81 17 C 75 18 73 20 72 26 C 71 20 69 18 63 17 C 69 16 71 14 72 8 Z M 16 28 C 17 34 19 36 25 37 C 19 38 17 40 16 46 C 15 40 13 38 7 37 C 13 36 15 34 16 28 Z" stroke-width="1.8" />
+                        </g>
+                        <g id="icon-heart" class="computer-icon" display="none" stroke-width="2.5">
+                            <path d="M 44 42 L 17 20 C 8 9 23 1 32 12 L 44 23 L 56 12 C 65 1 80 9 71 20 Z" />
+                            <path d="M 12 39 L 18 33 L 23 39 L 18 45 Z M 70 8 L 74 4 L 78 8 L 74 12 Z" stroke-width="1.8" />
+                        </g>
                     </g>
 
                     <line id="subDivider" x1="527" y1="281" x2="517" y2="326" stroke="#00235b" stroke-width="2.4" stroke-linecap="round" />
 
                     <text id="subTitleText" x="712" y="317" text-anchor="middle" fill="#00235b" font-family="'Montserrat', sans-serif" font-weight="800" font-style="italic" font-size="37" letter-spacing="0.2">Jabatan</text>
 
-                    <g>
+                    <g id="sub-accents">
                         <polygon id="subAccentOne" points="948,280 982,280 946,326 912,326" fill="#0245a3" />
                         <polygon id="subAccentTwo" points="996,280 1030,280 994,326 960,326" fill="#0284c7" />
                     </g>
@@ -235,6 +353,8 @@
                         <ellipse cx="735" cy="335" rx="14" ry="14" fill="url(#flareGlow)" />
                     </g>
                 </g>
+
+                <g id="customElementsLayer" aria-label="Elemen kustom"></g>
             </svg>
         </div>
     </main>
@@ -248,6 +368,7 @@
             </div>
             <h1 class="text-base font-bold text-white">Editor Lower Third</h1>
             <p>Sesuaikan identitas visual, gaya desain, dan pengaturan ekspor.</p>
+            <button class="dock-close-button" type="button" aria-label="Tutup panel desain" onclick="toggleControls(event)">×</button>
         </header>
         <section class="editor-fields" aria-label="Identitas dan tampilan">
             <label class="editor-field" for="nameInput">
@@ -267,26 +388,61 @@
                 <select id="subTitleFont" onchange="setTextFont('subTitle', this.value)"></select>
             </label>
             <label class="editor-field editor-field--wide" for="computerModel">
-                <span>Perangkat</span>
+                <span>Perangkat atau hiasan</span>
                 <select id="computerModel" onchange="setComputerModel(this.value)">
-                <option value="laptop">Laptop</option>
-                <option value="monitor">Monitor</option>
-                <option value="desktop">Desktop dan CPU</option>
-                <option value="tablet">Tablet</option>
-                <option value="server">Server</option>
+                    <optgroup label="Perangkat">
+                        <option value="laptop">Laptop</option>
+                        <option value="monitor">Monitor</option>
+                        <option value="desktop">Desktop dan CPU</option>
+                        <option value="tablet">Tablet</option>
+                        <option value="server">Server</option>
+                    </optgroup>
+                    <optgroup label="Hiasan">
+                        <option value="flower">Bunga</option>
+                        <option value="star">Bintang</option>
+                        <option value="leaf">Daun</option>
+                        <option value="crown">Mahkota</option>
+                        <option value="sparkle">Kilau</option>
+                        <option value="heart">Hati</option>
+                    </optgroup>
                 </select>
             </label>
+            <section class="decoration-position" aria-label="Pengaturan posisi perangkat atau hiasan">
+                <div class="decoration-position-heading">
+                    <strong>Posisi perangkat / hiasan</strong>
+                    <span>Seret ikon di pratinjau atau atur koordinat.</span>
+                </div>
+                <label class="decoration-position-axis" for="decorationXRange">
+                    <span>X <output id="decorationXValue" for="decorationXRange">292</output></span>
+                    <input id="decorationXRange" type="range" min="40" max="1180" step="1" value="292" oninput="setDecorationPosition('x', this.value)">
+                </label>
+                <label class="decoration-position-axis" for="decorationYRange">
+                    <span>Y <output id="decorationYValue" for="decorationYRange">281</output></span>
+                    <input id="decorationYRange" type="range" min="160" max="405" step="1" value="281" oninput="setDecorationPosition('y', this.value)">
+                </label>
+                <button class="decoration-position-reset" type="button" onclick="resetDecorationPosition()">Atur ulang sesuai bentuk</button>
+            </section>
             <p id="fontOptionsNote" class="editor-field-note"></p>
         </section>
-        <section class="editor-template-picker" aria-label="Template visual">
+        <section class="editor-template-picker" aria-label="Bentuk elemen">
             <div class="editor-template-heading">
                 <div>
-                    <h2>Template visual</h2>
-                    <p>Pilih desain melalui gambar pratinjau.</p>
+                    <h2>Bentuk elemen</h2>
+                    <p>Pilih desain elemen tanpa mengubah palet warna.</p>
+                </div>
+                <span id="elementTemplateCount" class="editor-value"></span>
+            </div>
+            <div id="elementTemplateGallery" class="template-gallery template-gallery--elements" role="group" aria-label="Pilihan bentuk elemen"></div>
+        </section>
+        <section class="editor-template-picker" aria-label="Palet warna">
+            <div class="editor-template-heading">
+                <div>
+                    <h2>Palet warna</h2>
+                    <p>Pilih kombinasi warna tanpa mengubah bentuk elemen.</p>
                 </div>
                 <span id="templateCount" class="editor-value"></span>
             </div>
-            <div id="templateGallery" class="template-gallery" role="group" aria-label="Pilihan template visual"></div>
+            <div id="templateGallery" class="template-gallery" role="group" aria-label="Pilihan palet warna"></div>
         </section>
         <details class="editor-accordion">
             <summary>Warna tipografi</summary>
@@ -355,7 +511,7 @@
             <button type="button" onclick="setZoom(100)" id="zoomLabel" aria-label="Atur ulang skala pratinjau ke 100 persen" class="min-w-12 px-1 py-1 rounded-lg bg-slate-800 text-cyan-300 font-mono transition">100%</button>
             <button type="button" onclick="zoomView(10)" aria-label="Perbesar pratinjau" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-base transition">+</button>
         </div>
-        <div class="editor-action-group" aria-label="Ekspor desain">
+        <div id="exportActions" class="editor-action-group" aria-label="Ekspor desain">
             <button type="button" id="recordBtn" onclick="recordVideo()" class="editor-action-button editor-action-button--video">
                 <span id="recordDot" class="w-2 h-2 rounded-full bg-white"></span>
                 <span id="recordText">Ekspor video (10 detik)</span>
@@ -367,10 +523,88 @@
                 Ekspor PNG 2K
             </button>
         </div>
-        <div class="editor-action-group editor-action-group--secondary" aria-label="Setelan editor">
+        <div id="editorSettingsActions" class="editor-action-group editor-action-group--secondary" aria-label="Setelan editor">
             <button type="button" id="resetDefaultsBtn" onclick="applyProfessionalDefaults()" class="editor-action-button editor-action-button--reset">Pulihkan default profesional</button>
             <button type="button" id="pauseAnimationBtn" onclick="toggleAnimationPlayback()" aria-pressed="false" class="editor-action-button editor-action-button--pause">Jeda pratinjau</button>
-            <button type="button" onclick="toggleControls(event)" class="editor-action-button editor-action-button--secondary">Sembunyikan panel</button>
+        </div>
+    </aside>
+
+    <aside id="rightControlBar" class="right-control-sidebar panel-hidden" aria-label="Panel elemen dan ekspor" inert>
+        <header class="right-panel-header">
+            <div>
+                <span class="editor-kicker">RUANG KERJA</span>
+                <h2>Elemen & Ekspor</h2>
+                <p>Buat objek, atur layer, dan simpan hasil desain.</p>
+            </div>
+            <button class="dock-close-button" type="button" aria-label="Tutup panel elemen" onclick="toggleElementPanel()">×</button>
+        </header>
+        <div id="rightDockContent" class="right-dock-content">
+            <section class="right-panel-section" aria-label="Membuat elemen">
+                <div class="right-panel-section-heading">
+                    <span class="right-panel-section-icon">✦</span>
+                    <div><h3>Elemen kustom</h3><p>Bentuk bebas yang bisa diatur satu per satu.</p></div>
+                </div>
+                <details id="customElementBuilder" class="editor-accordion custom-element-builder" open>
+                    <summary>Pilih bentuk & buat elemen</summary>
+                    <p class="editor-help">Pilih bentuk, lalu tambahkan ke kanvas. Anda dapat membuat beberapa sekaligus.</p>
+                    <label class="custom-builder-field" for="customElementShape"><span>Pilih bentuk</span>
+                        <select id="customElementShape" class="custom-shape-native-select">
+                            <optgroup label="Bentuk dasar">
+                                <option value="rect">Persegi / persegi panjang</option><option value="roundedRect">Persegi sudut bulat</option>
+                                <option value="circle">Lingkaran</option><option value="oval">Oval</option>
+                                <option value="triangle">Segitiga</option><option value="trapezoid">Trapesium</option>
+                                <option value="pentagon">Pentagon</option><option value="hexagon">Hexagon</option>
+                            </optgroup>
+                            <optgroup label="Bentuk khusus">
+                                <option value="polygon">Poligon</option><option value="line">Garis lurus</option>
+                                <option value="curve">Garis lengkung</option><option value="abstract">Abstrak</option>
+                                <option value="geometric">Geometris</option>
+                            </optgroup>
+                        </select>
+                    </label>
+                    <div id="customShapePicker" class="custom-shape-gallery" role="group" aria-label="Pilih bentuk elemen"></div>
+                    <div class="custom-builder-create">
+                        <label class="custom-builder-field custom-builder-count" for="customElementCount">
+                            <span>Jumlah elemen</span><input id="customElementCount" type="number" min="1" max="20" value="1">
+                        </label>
+                        <button class="custom-builder-add" type="button" onclick="addCustomElement()"><span>＋</span> Tambahkan ke kanvas</button>
+                    </div>
+                    <div class="custom-element-list-heading"><span>Layer pada kanvas</span><small id="customLayerCount">0 elemen</small></div>
+                    <div id="customElementList" class="custom-element-list" role="group" aria-label="Daftar elemen buatan">
+                        <p id="customElementEmpty" class="custom-element-empty">Belum ada elemen. Tambahkan bentuk pertama Anda.</p>
+                    </div>
+                    <section id="customElementInspector" class="custom-element-inspector" aria-label="Pengaturan elemen terpilih" hidden>
+                        <div class="custom-element-inspector-title"><strong>Properti elemen</strong><span id="customElementSelectionLabel"></span></div>
+                        <div class="custom-builder-fields">
+                            <label class="custom-builder-field custom-builder-field--wide" for="customElementName"><span>Nama layer</span><input id="customElementName" type="text" maxlength="32" oninput="updateSelectedCustomElement('name', this.value)" onblur="finalizeSelectedCustomElementName()"></label>
+                            <label class="custom-builder-field" for="customElementX"><span>Posisi X</span><input id="customElementX" type="number" min="0" max="1280" step="1" oninput="updateSelectedCustomElement('x', this.value)"></label>
+                            <label class="custom-builder-field" for="customElementY"><span>Posisi Y</span><input id="customElementY" type="number" min="0" max="460" step="1" oninput="updateSelectedCustomElement('y', this.value)"></label>
+                            <label class="custom-builder-field" for="customElementWidth"><span>Lebar</span><input id="customElementWidth" type="number" min="8" max="1280" step="1" oninput="updateSelectedCustomElement('width', this.value)"></label>
+                            <label class="custom-builder-field" for="customElementHeight"><span>Tinggi</span><input id="customElementHeight" type="number" min="8" max="460" step="1" oninput="updateSelectedCustomElement('height', this.value)"></label>
+                            <label class="custom-builder-field" for="customElementRotation"><span>Rotasi</span><input id="customElementRotation" type="number" min="-180" max="180" step="1" oninput="updateSelectedCustomElement('rotation', this.value)"></label>
+                            <label id="customPolygonSidesField" class="custom-builder-field" for="customElementSides" hidden><span>Jumlah sisi</span><input id="customElementSides" type="number" min="3" max="12" step="1" oninput="updateSelectedCustomElement('sides', this.value)"></label>
+                            <label class="custom-builder-field" for="customElementFillMode"><span>Mode isi</span><select id="customElementFillMode" onchange="updateSelectedCustomElement('fillMode', this.value)"><option value="solid">Solid</option><option value="gradient">Gradasi</option></select></label>
+                            <label class="custom-builder-field custom-builder-color" for="customElementFillColor"><span>Warna isi</span><input id="customElementFillColor" type="color" oninput="updateSelectedCustomElement('fillColor', this.value)"></label>
+                            <label id="customGradientColorField" class="custom-builder-field custom-builder-color" for="customElementGradientColor" hidden><span>Warna gradasi 2</span><input id="customElementGradientColor" type="color" oninput="updateSelectedCustomElement('gradientColor', this.value)"></label>
+                            <label class="custom-builder-field custom-builder-color" for="customElementStrokeColor"><span>Warna garis</span><input id="customElementStrokeColor" type="color" oninput="updateSelectedCustomElement('strokeColor', this.value)"></label>
+                            <label class="custom-builder-field" for="customElementBorderWidth"><span>Ketebalan garis</span><input id="customElementBorderWidth" type="number" min="0" max="20" step="0.5" oninput="updateSelectedCustomElement('borderWidth', this.value)"></label>
+                            <label id="customElementRadiusField" class="custom-builder-field" for="customElementRadius" hidden><span>Radius sudut</span><input id="customElementRadius" type="number" min="0" max="200" step="1" oninput="updateSelectedCustomElement('radius', this.value)"></label>
+                            <label class="custom-builder-field" for="customElementOpacity"><span>Opasitas</span><input id="customElementOpacity" type="number" min="0" max="1" step="0.05" oninput="updateSelectedCustomElement('opacity', this.value)"></label>
+                        </div>
+                        <div class="custom-element-options">
+                            <label><input id="customElementShadow" type="checkbox" onchange="updateSelectedCustomElement('shadow', this.checked)"> Bayangan</label>
+                            <label><input id="customElementGlow" type="checkbox" onchange="updateSelectedCustomElement('glow', this.checked)"> Cahaya</label>
+                            <label><input id="customElementLocked" type="checkbox" onchange="updateSelectedCustomElement('locked', this.checked)"> Kunci posisi</label>
+                        </div>
+                        <div class="custom-element-actions">
+                            <button type="button" onclick="duplicateSelectedCustomElement()">Duplikat</button>
+                            <button type="button" onclick="moveSelectedCustomElementLayer(1)">Naik layer</button>
+                            <button type="button" onclick="moveSelectedCustomElementLayer(-1)">Turun layer</button>
+                            <button class="custom-element-delete" type="button" onclick="deleteSelectedCustomElement()">Hapus</button>
+                        </div>
+                    </section>
+                </details>
+            </section>
         </div>
     </aside>
 
