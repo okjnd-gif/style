@@ -379,14 +379,20 @@
                 <span>Jabatan</span>
                 <input id="subTitleInput" type="text" value="Jabatan" maxlength="32" oninput="updateSubTitle(this.value)">
             </label>
-            <label class="editor-field" for="nameFont">
-                <span>Font nama</span>
-                <select id="nameFont" onchange="setTextFont('name', this.value)"></select>
-            </label>
-            <label class="editor-field" for="subTitleFont">
-                <span>Font jabatan</span>
-                <select id="subTitleFont" onchange="setTextFont('subTitle', this.value)"></select>
-            </label>
+            <details class="editor-accordion editor-font-controls editor-field--wide">
+                <summary>Tipografi & font</summary>
+                <div class="editor-font-fields">
+                    <label class="editor-field" for="nameFont">
+                        <span>Font nama</span>
+                        <select id="nameFont" onchange="setTextFont('name', this.value)"></select>
+                    </label>
+                    <label class="editor-field" for="subTitleFont">
+                        <span>Font jabatan</span>
+                        <select id="subTitleFont" onchange="setTextFont('subTitle', this.value)"></select>
+                    </label>
+                </div>
+                <p id="fontOptionsNote" class="editor-field-note"></p>
+            </details>
             <label class="editor-field editor-field--wide" for="computerModel">
                 <span>Perangkat atau hiasan</span>
                 <select id="computerModel" onchange="setComputerModel(this.value)">
@@ -407,92 +413,107 @@
                     </optgroup>
                 </select>
             </label>
-            <section class="decoration-position" aria-label="Pengaturan posisi perangkat atau hiasan">
-                <div class="decoration-position-heading">
-                    <strong>Posisi perangkat / hiasan</strong>
-                    <span>Seret ikon di pratinjau atau atur koordinat.</span>
-                </div>
-                <label class="decoration-position-axis" for="decorationXRange">
-                    <span>X <output id="decorationXValue" for="decorationXRange">292</output></span>
+            <details class="editor-accordion decoration-position editor-field--wide" aria-label="Pengaturan posisi perangkat atau hiasan">
+                <summary class="decoration-position-summary">
+                    <div class="decoration-position-heading">
+                        <strong>Posisi perangkat / hiasan</strong>
+                        <span>Atur dengan angka atau slider, atau seret ikon di kanvas.</span>
+                    </div>
+                </summary>
+                <div class="decoration-position-axis">
+                    <label class="decoration-position-label" for="decorationXRange">X <output id="decorationXValue" for="decorationXRange">292</output></label>
                     <input id="decorationXRange" type="range" min="40" max="1180" step="1" value="292" oninput="setDecorationPosition('x', this.value)">
-                </label>
-                <label class="decoration-position-axis" for="decorationYRange">
-                    <span>Y <output id="decorationYValue" for="decorationYRange">281</output></span>
+                    <input id="decorationXNumber" class="decoration-position-number" type="number" min="40" max="1180" step="1" value="292" aria-label="Posisi X dalam piksel" oninput="setDecorationPositionFromInput('x', this)" onblur="commitDecorationPositionInput('x', this)">
+                </div>
+                <div class="decoration-position-axis">
+                    <label class="decoration-position-label" for="decorationYRange">Y <output id="decorationYValue" for="decorationYRange">281</output></label>
                     <input id="decorationYRange" type="range" min="160" max="405" step="1" value="281" oninput="setDecorationPosition('y', this.value)">
-                </label>
+                    <input id="decorationYNumber" class="decoration-position-number" type="number" min="160" max="405" step="1" value="281" aria-label="Posisi Y dalam piksel" oninput="setDecorationPositionFromInput('y', this)" onblur="commitDecorationPositionInput('y', this)">
+                </div>
                 <button class="decoration-position-reset" type="button" onclick="resetDecorationPosition()">Atur ulang sesuai bentuk</button>
+            </details>
+        </section>
+        <details id="editorTemplateOptions" class="editor-accordion editor-template-picker editor-visual-templates">
+            <summary>Template desain</summary>
+            <div class="editor-option-tabs editor-template-tabs" role="tablist" aria-label="Kategori template">
+                <button id="editorTemplateTabShapes" class="editor-option-tab" type="button" role="tab" aria-selected="true" aria-controls="editorTemplatePanelShapes" tabindex="0">Bentuk</button>
+                <button id="editorTemplateTabPalettes" class="editor-option-tab" type="button" role="tab" aria-selected="false" aria-controls="editorTemplatePanelPalettes" tabindex="-1">Palet</button>
+            </div>
+            <section id="editorTemplatePanelShapes" class="editor-option-panel" role="tabpanel" aria-labelledby="editorTemplateTabShapes" tabindex="0">
+                <div class="editor-template-heading">
+                    <div>
+                        <h2>Bentuk elemen</h2>
+                        <p>Pilih desain elemen tanpa mengubah palet warna.</p>
+                    </div>
+                    <span id="elementTemplateCount" class="editor-value"></span>
+                </div>
+                <div id="elementTemplateGallery" class="template-gallery template-gallery--elements" role="group" aria-label="Pilihan bentuk elemen"></div>
             </section>
-            <p id="fontOptionsNote" class="editor-field-note"></p>
-        </section>
-        <section class="editor-template-picker" aria-label="Bentuk elemen">
-            <div class="editor-template-heading">
-                <div>
-                    <h2>Bentuk elemen</h2>
-                    <p>Pilih desain elemen tanpa mengubah palet warna.</p>
+            <section id="editorTemplatePanelPalettes" class="editor-option-panel" role="tabpanel" aria-labelledby="editorTemplateTabPalettes" tabindex="0" hidden>
+                <div class="editor-template-heading">
+                    <div>
+                        <h2>Palet warna</h2>
+                        <p>Pilih kombinasi warna tanpa mengubah bentuk elemen.</p>
+                    </div>
+                    <span id="templateCount" class="editor-value"></span>
                 </div>
-                <span id="elementTemplateCount" class="editor-value"></span>
+                <div id="templateGallery" class="template-gallery" role="group" aria-label="Pilihan palet warna"></div>
+            </section>
+        </details>
+        <details id="editorColorOptions" class="editor-accordion editor-color-options">
+            <summary>Warna & efek</summary>
+            <div class="editor-option-tabs" role="tablist" aria-label="Kategori pengaturan warna">
+                <button id="editorColorTabTypography" class="editor-option-tab" type="button" role="tab" aria-selected="true" aria-controls="editorColorPanelTypography" tabindex="0">Tipografi</button>
+                <button id="editorColorTabDesign" class="editor-option-tab" type="button" role="tab" aria-selected="false" aria-controls="editorColorPanelDesign" tabindex="-1">Elemen</button>
+                <button id="editorColorTabEffects" class="editor-option-tab" type="button" role="tab" aria-selected="false" aria-controls="editorColorPanelEffects" tabindex="-1">Efek</button>
             </div>
-            <div id="elementTemplateGallery" class="template-gallery template-gallery--elements" role="group" aria-label="Pilihan bentuk elemen"></div>
-        </section>
-        <section class="editor-template-picker" aria-label="Palet warna">
-            <div class="editor-template-heading">
-                <div>
-                    <h2>Palet warna</h2>
-                    <p>Pilih kombinasi warna tanpa mengubah bentuk elemen.</p>
+            <section id="editorColorPanelTypography" class="editor-option-panel" role="tabpanel" aria-labelledby="editorColorTabTypography" tabindex="0">
+                <p class="editor-help">Atur warna nama dan jabatan secara terpisah.</p>
+                <div class="editor-color-grid">
+                    <label class="color-control"><span>Warna nama</span><input id="nameTextColor" type="color" value="#ffffff" oninput="applyDesignColor('nameText', this.value)"></label>
+                    <label class="color-control"><span>Warna jabatan</span><input id="subTextColor" type="color" value="#00235b" oninput="applyDesignColor('subText', this.value)"></label>
                 </div>
-                <span id="templateCount" class="editor-value"></span>
-            </div>
-            <div id="templateGallery" class="template-gallery" role="group" aria-label="Pilihan palet warna"></div>
-        </section>
-        <details class="editor-accordion">
-            <summary>Warna tipografi</summary>
-            <p class="editor-help">Atur warna nama dan jabatan secara terpisah.</p>
-            <div class="editor-color-grid">
-                <label class="color-control"><span>Warna nama</span><input id="nameTextColor" type="color" value="#ffffff" oninput="applyDesignColor('nameText', this.value)"></label>
-                <label class="color-control"><span>Warna jabatan</span><input id="subTextColor" type="color" value="#00235b" oninput="applyDesignColor('subText', this.value)"></label>
-            </div>
-        </details>
-        <details class="editor-accordion">
-            <summary>Warna elemen desain</summary>
-            <p class="editor-help">Atur bidang, bingkai, perangkat, dan aksen secara terpisah.</p>
-            <div class="editor-color-grid">
-                <label class="color-control"><span>Bidang nama</span><input id="mainFillColor" type="color" value="#0353a4" oninput="applyDesignColor('mainFill', this.value)"></label>
-                <label class="color-control"><span>Bingkai nama</span><input id="mainOuterColor" type="color" value="#38bdf8" oninput="applyDesignColor('mainOuter', this.value)"></label>
-                <label class="color-control"><span>Garis tepi nama</span><input id="mainRimColor" type="color" value="#e0f2fe" oninput="applyDesignColor('mainRim', this.value)"></label>
-                <label class="color-control"><span>Cahaya utama</span><input id="mainNeonOneColor" type="color" value="#00f0ff" oninput="applyDesignColor('mainNeonOne', this.value)"></label>
-                <label class="color-control"><span>Cahaya sekunder</span><input id="mainNeonTwoColor" type="color" value="#38bdf8" oninput="applyDesignColor('mainNeonTwo', this.value)"></label>
-                <label class="color-control"><span>Inti cahaya utama</span><input id="mainNeonCoreColor" type="color" value="#ffffff" oninput="applyDesignColor('mainNeonCore', this.value)"></label>
-                <label class="color-control"><span>Inti cahaya sekunder</span><input id="mainNeonCoreTwoColor" type="color" value="#e0f2fe" oninput="applyDesignColor('mainNeonCoreTwo', this.value)"></label>
-                <label class="color-control"><span>Bidang jabatan</span><input id="subFillColor" type="color" value="#e0f2fe" oninput="applyDesignColor('subFill', this.value)"></label>
-                <label class="color-control"><span>Bingkai jabatan</span><input id="subFrameColor" type="color" value="#0552c2" oninput="applyDesignColor('subFrame', this.value)"></label>
-                <label class="color-control"><span>Cahaya jabatan</span><input id="subNeonColor" type="color" value="#00f0ff" oninput="applyDesignColor('subNeon', this.value)"></label>
-                <label class="color-control"><span>Inti cahaya jabatan</span><input id="subNeonCoreColor" type="color" value="#ffffff" oninput="applyDesignColor('subNeonCore', this.value)"></label>
-                <label class="color-control"><span>Warna garis perangkat</span><input id="iconColor" type="color" value="#00235b" oninput="applyDesignColor('icon', this.value)"></label>
-                <label class="color-control"><span>Layar perangkat</span><input id="laptopScreenColor" type="color" value="#e0f2fe" oninput="applyDesignColor('laptopScreen', this.value)"></label>
-                <label class="color-control"><span>Bodi perangkat</span><input id="laptopBaseColor" type="color" value="#cbd5e1" oninput="applyDesignColor('laptopBase', this.value)"></label>
-                <label class="color-control"><span>Garis pemisah</span><input id="subDividerColor" type="color" value="#00235b" oninput="applyDesignColor('subDivider', this.value)"></label>
-                <label class="color-control"><span>Aksen kiri 1</span><input id="leftAccentOneColor" type="color" value="#0ea5e9" oninput="applyDesignColor('leftAccentOne', this.value)"></label>
-                <label class="color-control"><span>Aksen kiri 2</span><input id="leftAccentTwoColor" type="color" value="#0245a3" oninput="applyDesignColor('leftAccentTwo', this.value)"></label>
-                <label class="color-control"><span>Aksen kiri 3</span><input id="leftAccentThreeColor" type="color" value="#ffffff" oninput="applyDesignColor('leftAccentThree', this.value)"></label>
-                <label class="color-control"><span>Aksen kiri 4</span><input id="leftAccentFourColor" type="color" value="#0ea5e9" oninput="applyDesignColor('leftAccentFour', this.value)"></label>
-                <label class="color-control"><span>Aksen kanan 1</span><input id="rightAccentOneColor" type="color" value="#0245a3" oninput="applyDesignColor('rightAccentOne', this.value)"></label>
-                <label class="color-control"><span>Aksen kanan 2</span><input id="rightAccentTwoColor" type="color" value="#0284c7" oninput="applyDesignColor('rightAccentTwo', this.value)"></label>
-            </div>
-        </details>
-        <details class="editor-accordion">
-            <summary>Efek visual</summary>
-            <p class="editor-help">Sesuaikan sorotan, kilau, pendar, dan bayangan.</p>
-            <div class="editor-color-grid">
-                <label class="color-control"><span>Sorotan panel</span><input id="mainHighlightColor" type="color" value="#0ea5e9" oninput="applyEffectColor('mainHighlight', this.value)"></label>
-                <label class="color-control"><span>Kilau panel</span><input id="mainShimmerColor" type="color" value="#7dd3fc" oninput="applyEffectColor('mainShimmer', this.value)"></label>
-                <label class="color-control"><span>Kilau nama</span><input id="textShimmerColor" type="color" value="#ffffff" oninput="applyEffectColor('textShimmer', this.value)"></label>
-                <label class="color-control"><span>Kilau jabatan</span><input id="subShimmerColor" type="color" value="#ffffff" oninput="applyEffectColor('subShimmer', this.value)"></label>
-                <label class="color-control"><span>Pendar nama</span><input id="textGlowColor" type="color" value="#38bdf8" oninput="applyEffectColor('textGlow', this.value)"></label>
-                <label class="color-control"><span>Bayangan teks</span><input id="textShadowColor" type="color" value="#000c24" oninput="applyEffectColor('textShadow', this.value)"></label>
-                <label class="color-control"><span>Inti suar cahaya</span><input id="flareCoreColor" type="color" value="#ffffff" oninput="applyEffectColor('flareCore', this.value)"></label>
-                <label class="color-control"><span>Warna suar cahaya</span><input id="flareTintColor" type="color" value="#7dd3fc" oninput="applyEffectColor('flareTint', this.value)"></label>
-                <label class="color-control"><span>Bayangan pratinjau</span><input id="stageShadowColor" type="color" value="#000000" oninput="applyEffectColor('stageShadow', this.value)"></label>
-            </div>
+            </section>
+            <section id="editorColorPanelDesign" class="editor-option-panel" role="tabpanel" aria-labelledby="editorColorTabDesign" tabindex="0" hidden>
+                <p class="editor-help">Atur bidang, bingkai, perangkat, dan aksen secara terpisah.</p>
+                <div class="editor-color-grid">
+                    <label class="color-control"><span>Bidang nama</span><input id="mainFillColor" type="color" value="#0353a4" oninput="applyDesignColor('mainFill', this.value)"></label>
+                    <label class="color-control"><span>Bingkai nama</span><input id="mainOuterColor" type="color" value="#38bdf8" oninput="applyDesignColor('mainOuter', this.value)"></label>
+                    <label class="color-control"><span>Garis tepi nama</span><input id="mainRimColor" type="color" value="#e0f2fe" oninput="applyDesignColor('mainRim', this.value)"></label>
+                    <label class="color-control"><span>Cahaya utama</span><input id="mainNeonOneColor" type="color" value="#00f0ff" oninput="applyDesignColor('mainNeonOne', this.value)"></label>
+                    <label class="color-control"><span>Cahaya sekunder</span><input id="mainNeonTwoColor" type="color" value="#38bdf8" oninput="applyDesignColor('mainNeonTwo', this.value)"></label>
+                    <label class="color-control"><span>Inti cahaya utama</span><input id="mainNeonCoreColor" type="color" value="#ffffff" oninput="applyDesignColor('mainNeonCore', this.value)"></label>
+                    <label class="color-control"><span>Inti cahaya sekunder</span><input id="mainNeonCoreTwoColor" type="color" value="#e0f2fe" oninput="applyDesignColor('mainNeonCoreTwo', this.value)"></label>
+                    <label class="color-control"><span>Bidang jabatan</span><input id="subFillColor" type="color" value="#e0f2fe" oninput="applyDesignColor('subFill', this.value)"></label>
+                    <label class="color-control"><span>Bingkai jabatan</span><input id="subFrameColor" type="color" value="#0552c2" oninput="applyDesignColor('subFrame', this.value)"></label>
+                    <label class="color-control"><span>Cahaya jabatan</span><input id="subNeonColor" type="color" value="#00f0ff" oninput="applyDesignColor('subNeon', this.value)"></label>
+                    <label class="color-control"><span>Inti cahaya jabatan</span><input id="subNeonCoreColor" type="color" value="#ffffff" oninput="applyDesignColor('subNeonCore', this.value)"></label>
+                    <label class="color-control"><span>Warna garis perangkat</span><input id="iconColor" type="color" value="#00235b" oninput="applyDesignColor('icon', this.value)"></label>
+                    <label class="color-control"><span>Layar perangkat</span><input id="laptopScreenColor" type="color" value="#e0f2fe" oninput="applyDesignColor('laptopScreen', this.value)"></label>
+                    <label class="color-control"><span>Bodi perangkat</span><input id="laptopBaseColor" type="color" value="#cbd5e1" oninput="applyDesignColor('laptopBase', this.value)"></label>
+                    <label class="color-control"><span>Garis pemisah</span><input id="subDividerColor" type="color" value="#00235b" oninput="applyDesignColor('subDivider', this.value)"></label>
+                    <label class="color-control"><span>Aksen kiri 1</span><input id="leftAccentOneColor" type="color" value="#0ea5e9" oninput="applyDesignColor('leftAccentOne', this.value)"></label>
+                    <label class="color-control"><span>Aksen kiri 2</span><input id="leftAccentTwoColor" type="color" value="#0245a3" oninput="applyDesignColor('leftAccentTwo', this.value)"></label>
+                    <label class="color-control"><span>Aksen kiri 3</span><input id="leftAccentThreeColor" type="color" value="#ffffff" oninput="applyDesignColor('leftAccentThree', this.value)"></label>
+                    <label class="color-control"><span>Aksen kiri 4</span><input id="leftAccentFourColor" type="color" value="#0ea5e9" oninput="applyDesignColor('leftAccentFour', this.value)"></label>
+                    <label class="color-control"><span>Aksen kanan 1</span><input id="rightAccentOneColor" type="color" value="#0245a3" oninput="applyDesignColor('rightAccentOne', this.value)"></label>
+                    <label class="color-control"><span>Aksen kanan 2</span><input id="rightAccentTwoColor" type="color" value="#0284c7" oninput="applyDesignColor('rightAccentTwo', this.value)"></label>
+                </div>
+            </section>
+            <section id="editorColorPanelEffects" class="editor-option-panel" role="tabpanel" aria-labelledby="editorColorTabEffects" tabindex="0" hidden>
+                <p class="editor-help">Sesuaikan sorotan, kilau, pendar, dan bayangan.</p>
+                <div class="editor-color-grid">
+                    <label class="color-control"><span>Sorotan panel</span><input id="mainHighlightColor" type="color" value="#0ea5e9" oninput="applyEffectColor('mainHighlight', this.value)"></label>
+                    <label class="color-control"><span>Kilau panel</span><input id="mainShimmerColor" type="color" value="#7dd3fc" oninput="applyEffectColor('mainShimmer', this.value)"></label>
+                    <label class="color-control"><span>Kilau nama</span><input id="textShimmerColor" type="color" value="#ffffff" oninput="applyEffectColor('textShimmer', this.value)"></label>
+                    <label class="color-control"><span>Kilau jabatan</span><input id="subShimmerColor" type="color" value="#ffffff" oninput="applyEffectColor('subShimmer', this.value)"></label>
+                    <label class="color-control"><span>Pendar nama</span><input id="textGlowColor" type="color" value="#38bdf8" oninput="applyEffectColor('textGlow', this.value)"></label>
+                    <label class="color-control"><span>Bayangan teks</span><input id="textShadowColor" type="color" value="#000c24" oninput="applyEffectColor('textShadow', this.value)"></label>
+                    <label class="color-control"><span>Inti suar cahaya</span><input id="flareCoreColor" type="color" value="#ffffff" oninput="applyEffectColor('flareCore', this.value)"></label>
+                    <label class="color-control"><span>Warna suar cahaya</span><input id="flareTintColor" type="color" value="#7dd3fc" oninput="applyEffectColor('flareTint', this.value)"></label>
+                    <label class="color-control"><span>Bayangan pratinjau</span><input id="stageShadowColor" type="color" value="#000000" oninput="applyEffectColor('stageShadow', this.value)"></label>
+                </div>
+            </section>
         </details>
         <div class="editor-control-row editor-control-row--background">
             <span class="editor-control-label">Latar pratinjau</span>
@@ -562,6 +583,7 @@
                             </optgroup>
                         </select>
                     </label>
+                    <div id="customShapeCategories" class="custom-shape-categories" role="group" aria-label="Kategori bentuk"></div>
                     <div id="customShapePicker" class="custom-shape-gallery" role="group" aria-label="Pilih bentuk elemen"></div>
                     <div class="custom-builder-create">
                         <label class="custom-builder-field custom-builder-count" for="customElementCount">

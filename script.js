@@ -546,6 +546,7 @@ function loadGifEncoder() {
 
 function createExportSvgFrameBuilder(svgElement, width, height, fontCss) {
     const clonedSvg = svgElement.cloneNode(true);
+    clonedSvg.querySelectorAll('[data-editor-overlay]').forEach(overlay => overlay.remove());
     clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     clonedSvg.setAttribute('width', String(width));
     clonedSvg.setAttribute('height', String(height));
@@ -672,10 +673,14 @@ function updateDecorationPositionControls(position) {
     const yRange = document.getElementById('decorationYRange');
     const xValue = document.getElementById('decorationXValue');
     const yValue = document.getElementById('decorationYValue');
+    const xNumber = document.getElementById('decorationXNumber');
+    const yNumber = document.getElementById('decorationYNumber');
     if (xRange) xRange.value = String(position.x);
     if (yRange) yRange.value = String(position.y);
     if (xValue) xValue.textContent = String(position.x);
     if (yValue) yValue.textContent = String(position.y);
+    if (xNumber && document.activeElement !== xNumber) xNumber.value = String(position.x);
+    if (yNumber && document.activeElement !== yNumber) yNumber.value = String(position.y);
 }
 
 function applyDecorationPosition(x, y, isManual) {
@@ -706,6 +711,17 @@ function setDecorationPosition(axis, value) {
     if (axis === 'x') nextPosition.x = Number(value);
     if (axis === 'y') nextPosition.y = Number(value);
     applyDecorationPosition(nextPosition.x, nextPosition.y, true);
+}
+
+function setDecorationPositionFromInput(axis, input) {
+    if (!input.value) return;
+    const value = input.valueAsNumber;
+    if (Number.isFinite(value)) setDecorationPosition(axis, value);
+}
+
+function commitDecorationPositionInput(axis, input) {
+    setDecorationPositionFromInput(axis, input);
+    input.value = String(decorationPosition ? decorationPosition[axis] : axis === 'x' ? 292 : 281);
 }
 
 function resetDecorationPosition() {
@@ -1620,11 +1636,53 @@ function createCustomShape(element) {
 
 function renderCustomShapePicker() {
     const picker = document.getElementById('customShapePicker');
+    const categories = document.getElementById('customShapeCategories');
     const select = document.getElementById('customElementShape');
-    if (!picker || !select) return;
-    picker.replaceChildren();
+    if (!picker || !categories || !select) return;
 
-    Object.entries(CUSTOM_ELEMENT_SHAPES).forEach(([shape, label]) => {
+    const groups = Array.from(select.querySelectorAll('optgroup'));
+    if (groups.length === 0) return;
+
+    const selectedGroupIndex = groups.findIndex(group => group.contains(select.selectedOptions[0]));
+    let activeCategoryIndex = selectedGroupIndex >= 0 ? selectedGroupIndex : 0;
+    if (picker.dataset.categoryIndex !== undefined) {
+        const requestedIndex = Number(picker.dataset.categoryIndex);
+        if (Number.isInteger(requestedIndex) && requestedIndex >= 0 && requestedIndex < groups.length) {
+            activeCategoryIndex = requestedIndex;
+        }
+    }
+    picker.dataset.categoryIndex = String(activeCategoryIndex);
+    categories.replaceChildren();
+    groups.forEach((group, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'custom-shape-category';
+        button.dataset.categoryIndex = String(index);
+        button.setAttribute('aria-controls', 'customShapePicker');
+        button.setAttribute('aria-label', `${group.label}, ${group.children.length} bentuk`);
+        button.setAttribute('aria-pressed', String(index === activeCategoryIndex));
+        button.classList.toggle('is-selected', index === activeCategoryIndex);
+
+        const label = document.createElement('span');
+        label.textContent = group.label;
+        const count = document.createElement('small');
+        count.className = 'custom-shape-category-count';
+        count.setAttribute('aria-hidden', 'true');
+        count.textContent = String(group.children.length);
+        button.append(label, count);
+        button.addEventListener('click', () => {
+            picker.dataset.categoryIndex = String(index);
+            renderCustomShapePicker();
+            categories.querySelector(`[data-category-index="${index}"]`)?.focus();
+        });
+        categories.appendChild(button);
+    });
+
+    picker.replaceChildren();
+    Array.from(groups[activeCategoryIndex].querySelectorAll('option')).forEach(option => {
+        const shape = option.value;
+        const label = CUSTOM_ELEMENT_SHAPES[shape];
+        if (!label) return;
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'custom-shape-card';
@@ -1648,7 +1706,11 @@ function renderCustomShapePicker() {
         button.append(preview, caption);
         button.addEventListener('click', () => {
             select.value = shape;
-            renderCustomShapePicker();
+            picker.querySelectorAll('.custom-shape-card').forEach(shapeButton => {
+                const isSelected = shapeButton.dataset.shape === shape;
+                shapeButton.classList.toggle('is-selected', isSelected);
+                shapeButton.setAttribute('aria-pressed', String(isSelected));
+            });
         });
         picker.appendChild(button);
     });
@@ -1657,30 +1719,64 @@ function renderCustomShapePicker() {
 function renderCustomElement(element) {
     const svgNamespace = 'http://www.w3.org/2000/svg';
     const group = document.createElementNS(svgNamespace, 'g');
+    const isSelected = element.id === selectedCustomElementId;
     group.dataset.customElement = element.id;
     group.setAttribute('transform', `translate(${element.x} ${element.y}) rotate(${element.rotation} ${element.width / 2} ${element.height / 2})`);
     group.setAttribute('role', 'button');
     group.setAttribute('tabindex', '0');
-    group.setAttribute('aria-label', `${element.name || CUSTOM_ELEMENT_SHAPES[element.shape]}${element.locked ? ', posisi terkunci' : ''}`);
-    group.setAttribute('aria-pressed', String(element.id === selectedCustomElementId));
+    group.setAttribute('aria-label', `${element.name || CUSTOM_ELEMENT_SHAPES[element.shape]}${element.locked ? ', posisi terkunci' : isSelected ? ', seret untuk memindahkan dan gunakan handle untuk mengubah ukuran' : ''}`);
+    group.setAttribute('aria-pressed', String(isSelected));
     group.classList.toggle('is-locked', element.locked);
     group.appendChild(createCustomShape(element));
 
-    if (element.id === selectedCustomElementId) {
-        const outline = document.createElementNS(svgNamespace, 'rect');
-        outline.dataset.selectionOutline = 'true';
-        outline.setAttribute('x', '-5');
-        outline.setAttribute('y', '-5');
-        outline.setAttribute('width', String(element.width + 10));
-        outline.setAttribute('height', String(element.height + 10));
-        outline.setAttribute('rx', '3');
-        outline.setAttribute('fill', 'none');
-        outline.setAttribute('stroke', '#67e8f9');
-        outline.setAttribute('stroke-width', '2');
-        outline.setAttribute('stroke-dasharray', '6 4');
-        group.appendChild(outline);
-    }
+    if (isSelected) group.appendChild(createCustomElementSelectionOverlay(element));
     return group;
+}
+
+function createCustomElementSelectionOverlay(element) {
+    const svgNamespace = 'http://www.w3.org/2000/svg';
+    const overlay = document.createElementNS(svgNamespace, 'g');
+    overlay.dataset.editorOverlay = 'true';
+    overlay.setAttribute('aria-hidden', 'true');
+
+    const outline = document.createElementNS(svgNamespace, 'rect');
+    outline.dataset.selectionOutline = 'true';
+    outline.setAttribute('x', '-5');
+    outline.setAttribute('y', '-5');
+    outline.setAttribute('width', String(element.width + 10));
+    outline.setAttribute('height', String(element.height + 10));
+    outline.setAttribute('rx', '3');
+    outline.setAttribute('fill', 'none');
+    outline.setAttribute('stroke', '#67e8f9');
+    outline.setAttribute('stroke-width', '2');
+    outline.setAttribute('stroke-dasharray', '6 4');
+    overlay.appendChild(outline);
+
+    if (!element.locked) {
+        const handleSize = 30;
+        const handles = [
+            ['nw', 0, 0], ['n', element.width / 2, 0], ['ne', element.width, 0],
+            ['e', element.width, element.height / 2], ['se', element.width, element.height],
+            ['s', element.width / 2, element.height], ['sw', 0, element.height],
+            ['w', 0, element.height / 2]
+        ];
+        handles.forEach(([direction, x, y]) => {
+            const handle = document.createElementNS(svgNamespace, 'rect');
+            handle.dataset.resizeHandle = direction;
+            handle.setAttribute('x', String(x - handleSize / 2));
+            handle.setAttribute('y', String(y - handleSize / 2));
+            handle.setAttribute('width', String(handleSize));
+            handle.setAttribute('height', String(handleSize));
+            handle.setAttribute('rx', '5');
+            handle.setAttribute('fill', '#07162f');
+            handle.setAttribute('stroke', '#67e8f9');
+            handle.setAttribute('stroke-width', '3');
+            handle.setAttribute('vector-effect', 'non-scaling-stroke');
+            overlay.appendChild(handle);
+        });
+    }
+
+    return overlay;
 }
 
 function renderCustomElements() {
@@ -1861,28 +1957,101 @@ function initializeCustomElementDragging() {
     const layer = document.getElementById('customElementsLayer');
     if (!svg || !layer || svg.dataset.customElementsInitialized === 'true') return;
     svg.dataset.customElementsInitialized = 'true';
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
     svg.addEventListener('pointerdown', event => {
         const target = event.target.closest && event.target.closest('[data-custom-element]');
         if (!target || !layer.contains(target) || event.button !== 0) return;
         const element = customCanvasElements.find(item => item.id === target.dataset.customElement);
         if (!element) return;
-        selectCustomElement(element.id);
+        const resizeHandle = event.target.closest('[data-resize-handle]');
+        if (selectedCustomElementId !== element.id) selectCustomElement(element.id);
         if (element.locked) return;
-        const point = getSvgPointFromPointer(event, svg);
-        if (!point) return;
-        customElementDrag = { id: element.id, offsetX: point.x - element.x, offsetY: point.y - element.y };
+
+        if (resizeHandle) {
+            const activeGroup = layer.querySelector(`[data-custom-element="${element.id}"]`);
+            const screenMatrix = activeGroup && activeGroup.getScreenCTM();
+            if (!screenMatrix) return;
+            const inverseMatrix = screenMatrix.inverse();
+            const pointer = svg.createSVGPoint();
+            pointer.x = event.clientX;
+            pointer.y = event.clientY;
+            const localPoint = pointer.matrixTransform(inverseMatrix);
+            customElementDrag = {
+                id: element.id,
+                mode: 'resize',
+                handle: resizeHandle.dataset.resizeHandle,
+                inverseMatrix,
+                startPointerX: localPoint.x,
+                startPointerY: localPoint.y,
+                startX: element.x,
+                startY: element.y,
+                startWidth: element.width,
+                startHeight: element.height
+            };
+        } else {
+            const point = getSvgPointFromPointer(event, svg);
+            if (!point) return;
+            customElementDrag = {
+                id: element.id,
+                mode: 'move',
+                offsetX: point.x - element.x,
+                offsetY: point.y - element.y
+            };
+        }
         svg.setPointerCapture(event.pointerId);
         event.preventDefault();
     });
 
     svg.addEventListener('pointermove', event => {
-        if (!customElementDrag || !svg.hasPointerCapture(event.pointerId)) return;
-        const element = customCanvasElements.find(item => item.id === customElementDrag.id);
+        const drag = customElementDrag;
+        if (!drag || !svg.hasPointerCapture(event.pointerId)) return;
+        const element = customCanvasElements.find(item => item.id === drag.id);
+        if (!element) return;
+
+        if (drag.mode === 'resize') {
+            const pointer = svg.createSVGPoint();
+            pointer.x = event.clientX;
+            pointer.y = event.clientY;
+            const localPoint = pointer.matrixTransform(drag.inverseMatrix);
+            const deltaX = localPoint.x - drag.startPointerX;
+            const deltaY = localPoint.y - drag.startPointerY;
+            let x = drag.startX;
+            let y = drag.startY;
+            let width = drag.startWidth;
+            let height = drag.startHeight;
+
+            if (drag.handle.includes('w')) {
+                const fixedRight = Math.min(1280, drag.startX + drag.startWidth);
+                x = clamp(drag.startX + deltaX, 0, fixedRight - 8);
+                width = fixedRight - x;
+            } else if (drag.handle.includes('e')) {
+                x = clamp(drag.startX, 0, 1280 - 8);
+                width = clamp(drag.startWidth + deltaX, 8, 1280 - x);
+            }
+            if (drag.handle.includes('n')) {
+                const fixedBottom = Math.min(460, drag.startY + drag.startHeight);
+                y = clamp(drag.startY + deltaY, 0, fixedBottom - 8);
+                height = fixedBottom - y;
+            } else if (drag.handle.includes('s')) {
+                y = clamp(drag.startY, 0, 460 - 8);
+                height = clamp(drag.startHeight + deltaY, 8, 460 - y);
+            }
+
+            element.x = Math.round(x);
+            element.y = Math.round(y);
+            element.width = Math.round(width);
+            element.height = Math.round(height);
+            const group = layer.querySelector(`[data-custom-element="${element.id}"]`);
+            if (group) group.replaceWith(renderCustomElement(element));
+            syncCustomElementInspector();
+            return;
+        }
+
         const point = getSvgPointFromPointer(event, svg);
-        if (!element || !point) return;
-        element.x = Math.round(Math.max(0, Math.min(1280 - element.width, point.x - customElementDrag.offsetX)));
-        element.y = Math.round(Math.max(0, Math.min(460 - element.height, point.y - customElementDrag.offsetY)));
+        if (!point) return;
+        element.x = Math.round(clamp(point.x - drag.offsetX, 0, 1280 - element.width));
+        element.y = Math.round(clamp(point.y - drag.offsetY, 0, 460 - element.height));
         const group = layer.querySelector(`[data-custom-element="${element.id}"]`);
         if (group) group.setAttribute('transform', `translate(${element.x} ${element.y}) rotate(${element.rotation} ${element.width / 2} ${element.height / 2})`);
         const xInput = document.getElementById('customElementX');
@@ -2602,6 +2771,40 @@ async function exportPng() {
     }
 }
 
+function initializeEditorOptionTabs() {
+    document.querySelectorAll('.editor-option-tabs').forEach(tabList => {
+        const tabs = Array.from(tabList.querySelectorAll('.editor-option-tab'));
+        if (!tabs.length) return;
+
+        const activateTab = (activeTab, moveFocus) => {
+            tabs.forEach(tab => {
+                const isActive = tab === activeTab;
+                tab.setAttribute('aria-selected', String(isActive));
+                tab.tabIndex = isActive ? 0 : -1;
+                const panel = document.getElementById(tab.getAttribute('aria-controls'));
+                if (panel) panel.hidden = !isActive;
+            });
+            if (moveFocus) activeTab.focus();
+        };
+
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => activateTab(tab, false));
+            tab.addEventListener('keydown', event => {
+                let nextIndex;
+                if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
+                else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+                else if (event.key === 'Home') nextIndex = 0;
+                else if (event.key === 'End') nextIndex = tabs.length - 1;
+                else return;
+                event.preventDefault();
+                activateTab(tabs[nextIndex], true);
+            });
+        });
+
+        activateTab(tabs.find(tab => tab.getAttribute('aria-selected') === 'true') || tabs[0], false);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeEditorPanels();
     populateFontSelectors();
@@ -2610,6 +2813,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCustomShapePicker();
     renderCustomElements();
     applyProfessionalDefaults(false);
+    initializeEditorOptionTabs();
     if (document.fonts?.ready) {
         document.fonts.ready.then(() => updateBannerLayout());
     }
